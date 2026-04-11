@@ -12,6 +12,13 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Helper to parse YYYY-MM-DD string as local date to avoid timezone issues.
+const parseDateString = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+
 export function FinancialDashboard() {
   const { bookings, expenses: dailyExpenses, productExpenses } = useApp();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -29,17 +36,17 @@ export function FinancialDashboard() {
       const year = getYear(month);
 
       const monthBookings = bookings.filter(b => {
-        const d = new Date(b.date);
+        const d = parseDateString(b.date);
         return getMonth(d) === monthIndex && getYear(d) === year;
       });
       
       const monthDailyExpenses = dailyExpenses.filter(e => {
-        const d = new Date(e.date);
+        const d = parseDateString(e.date);
         return getMonth(d) === monthIndex && getYear(d) === year;
       });
 
       const monthProductExpenses = productExpenses.filter(e => {
-        const d = new Date(e.date);
+        const d = parseDateString(e.date);
         return getMonth(d) === monthIndex && getYear(d) === year;
       });
 
@@ -66,17 +73,17 @@ export function FinancialDashboard() {
     const yearEnd = endOfYear(now);
     
     const yearBookings = bookings.filter(b => {
-      const d = new Date(b.date);
+      const d = parseDateString(b.date);
       return d >= yearStart && d <= yearEnd;
     });
 
     const yearDailyExpenses = dailyExpenses.filter(e => {
-        const d = new Date(e.date);
+        const d = parseDateString(e.date);
         return d >= yearStart && d <= yearEnd;
     });
 
     const yearProductExpenses = productExpenses.filter(e => {
-        const d = new Date(e.date);
+        const d = parseDateString(e.date);
         return d >= yearStart && d <= yearEnd;
     });
 
