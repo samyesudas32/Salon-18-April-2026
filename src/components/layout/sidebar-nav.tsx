@@ -36,7 +36,7 @@ const navItems = [
   { name: 'Upcoming', href: '/bookings/upcoming', icon: CalendarClock },
   { name: 'Completed', href: '/bookings/completed', icon: CalendarCheck },
   { name: 'All Bookings', href: '/bookings', icon: Calendar },
-  { name: 'Service Delivery', href: '/service-delivery', icon: Briefcase },
+  { name: 'Service Section', href: '/service-delivery', icon: Briefcase },
   { name: 'Clients', href: '/clients', icon: Users },
   { name: 'Reports', href: '/reports', icon: FileText },
   { name: 'Daily Expense', href: '/expenses', icon: Wallet },
