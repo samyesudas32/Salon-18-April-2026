@@ -1,0 +1,239 @@
+{
+  "entities": {
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client who books services with the business.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Client entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the client."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the client.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The primary phone number of the client."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the client."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "WorkType": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WorkType",
+      "type": "object",
+      "description": "Defines different categories or types of services offered by the business.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WorkType entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the work type (e.g., 'Website Design', 'SEO Consultation')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the work type or service."
+        },
+        "defaultPrice": {
+          "type": "number",
+          "description": "An optional default price or rate for this work type, in the local currency."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Booking": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Booking",
+      "type": "object",
+      "description": "Represents a scheduled service booking with a client, including all financial and service details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Booking entity."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to the Client entity who made this booking. (Relationship: Client 1:N Booking)"
+        },
+        "workTypeId": {
+          "type": "string",
+          "description": "Reference to the WorkType entity for the service being booked. (Relationship: WorkType 1:N Booking)"
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "The date and time when this booking record was created or registered.",
+          "format": "date-time"
+        },
+        "serviceDate": {
+          "type": "string",
+          "description": "The scheduled date and time for the service to be performed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the booking (e.g., 'Pending', 'Confirmed', 'Completed', 'Cancelled')."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total agreed-upon amount for the service, in the local currency."
+        },
+        "advanceAmount": {
+          "type": "number",
+          "description": "The amount paid by the client in advance for the service, in the local currency."
+        },
+        "expenseAmount": {
+          "type": "number",
+          "description": "Any additional expenses incurred specifically for this booking, in the local currency."
+        },
+        "expenseNote": {
+          "type": "string",
+          "description": "A brief note or description explaining the associated expense for this booking."
+        },
+        "balanceAmount": {
+          "type": "number",
+          "description": "The remaining balance due for the booking (Total Amount - Advance Amount - Expense Amount), in the local currency."
+        },
+        "notes": {
+          "type": "string",
+          "description": "General notes or specific instructions pertinent to this booking."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the booking record was initially created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the booking record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "clientId",
+        "workTypeId",
+        "bookingDate",
+        "serviceDate",
+        "status",
+        "totalAmount",
+        "advanceAmount",
+        "expenseAmount",
+        "expenseNote",
+        "balanceAmount",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Stores client information specific to a particular user. Each client document is privately owned by the user whose ID is specified in the path, ensuring that only the authenticated user can access their own client list.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this client record."
+            },
+            {
+              "name": "clientId",
+              "description": "The unique identifier for the client."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/workTypes/{workTypeId}",
+        "definition": {
+          "entityName": "WorkType",
+          "schema": {
+            "$ref": "#/backend/entities/WorkType"
+          },
+          "description": "Defines different categories or types of services offered by a user. Each work type document is privately owned by the user whose ID is specified in the path, ensuring only the authenticated user can manage their service offerings.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this work type definition."
+            },
+            {
+              "name": "workTypeId",
+              "description": "The unique identifier for the work type."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bookings/{bookingId}",
+        "definition": {
+          "entityName": "Booking",
+          "schema": {
+            "$ref": "#/backend/entities/Booking"
+          },
+          "description": "Represents a scheduled service booking, privately owned by the user whose ID is in the path. This collection stores all financial and service details for each booking, referencing clients and work types that belong to the same user. Includes denormalized 'clientId' and 'workTypeId' for contextual data integrity within the user's scope.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this booking record."
+            },
+            {
+              "name": "bookingId",
+              "description": "The unique identifier for the booking."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/backups/{backupId}",
+        "definition": {
+          "entityName": "Backup",
+          "schema": {
+            "$ref": "#/backend/entities/Backup"
+          },
+          "description": "Stores timestamped full snapshots of a user's entire application data (clients, work types, bookings) for backup and restore purposes. Each document represents a single backup version and is strictly private to the user specified by 'userId'.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this backup."
+            },
+            {
+              "name": "backupId",
+              "description": "A unique identifier for the backup, typically a timestamp to support multiple backup versions."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure prioritizes Authorization Independence and Query-Aware Security Rules (QAPs) by anchoring all user-specific data directly under the authenticated user's unique ID. This design ensures that every piece of application data (Clients, WorkTypes, Bookings) is inherently private and accessible only by its owner. \n\n**Authorization Independence:** All collections are subcollections of `/users/{userId}/`. This path structure means that any security rule for documents within `/users/{userId}/clients`, `/users/{userId}/workTypes`, `/users/{userId}/bookings`, or `/users/{userId}/backups` can directly reference `request.auth.uid == userId`. This completely eliminates the need for `get()` calls in security rules to verify ownership or permissions from a parent document. For example, to read a client document, the rule simply checks if `request.auth.uid` matches the `{userId}` wildcard in the path `match /users/{userId}/clients/{clientId}`. This makes rules atomic, robust, and easy to debug.\n\n**QAPs (Rules are not Filters):** By segregating all data per user into distinct subcollections under `/users/{userId}/`, `list` operations become inherently secure and performant. When a user queries `users/{request.auth.uid}/clients`, Firestore's security rules can grant access based solely on the path. The rule `allow list: if request.auth.uid == userId;` is efficient because Firestore can evaluate it directly without needing to filter results after a broad query, adhering to the 'rules are not filters' principle. Each user's data operates in its own securely partitioned space, making it impossible for one user to inadvertently or maliciously query another user's data through a valid query with permissions.\n\n**Denormalization:** In this specific design, since all user data is rooted under `/users/{userId}/`, the `userId` in the path itself serves as the primary authorization context. While `ownerId` could be denormalized into each document for auditability or potential future flexibility, it is not strictly necessary for security rule enforcement in this purely user-scoped model, as the `userId` in the path implicitly defines ownership and is used by `request.auth.uid`. The `Booking` documents do contain `clientId` and `workTypeId` which are references to other documents *within the same user's scope*, maintaining strong referential integrity without cross-user dependencies or complex authorization rules."
+  }
+}
