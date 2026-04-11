@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Calculator, CalendarIcon, Phone, User, Briefcase, IndianRupee, AlignLeft, Clock, UserCheck } from 'lucide-react';
+import { Plus, Calculator, CalendarIcon, Phone, User, Briefcase, IndianRupee, AlignLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,8 +43,6 @@ const formSchema = z.object({
   workType: z.string().min(2, 'Work type is required'),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
-  duration: z.string().min(1, 'Duration is required'),
-  staffName: z.string().min(2, 'Staff name is required'),
   advanceAmount: z.coerce.number().min(0),
   totalAmount: z.coerce.number().min(0),
   expenseAmount: z.coerce.number().min(0),
@@ -70,8 +68,6 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
       workType: booking?.workType || '',
       date: booking?.date || new Date().toISOString().split('T')[0],
       time: booking?.time || '12:00',
-      duration: booking?.duration || '1 Hour',
-      staffName: booking?.staffName || '',
       advanceAmount: booking?.advanceAmount || 0,
       totalAmount: booking?.totalAmount || 0,
       expenseAmount: booking?.expenseAmount || 0,
@@ -89,8 +85,6 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
         workType: booking.workType,
         date: booking.date,
         time: booking.time,
-        duration: booking.duration,
-        staffName: booking.staffName,
         advanceAmount: booking.advanceAmount,
         totalAmount: booking.totalAmount,
         expenseAmount: booking.expenseAmount,
@@ -212,23 +206,29 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
                 />
                 <FormField
                   control={form.control}
-                  name="staffName"
+                  name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Attending Staff</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <UserCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Staff Name" className="pl-9" {...field} />
-                        </div>
-                      </FormControl>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="upcoming">Upcoming</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -261,46 +261,7 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="e.g. 1h 30m" className="pl-9" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem className="max-w-[200px]">
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="upcoming">Upcoming</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <Separator className="opacity-50" />

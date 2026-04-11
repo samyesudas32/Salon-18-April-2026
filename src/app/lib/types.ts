@@ -6,8 +6,6 @@ export interface Booking {
   workType: string;
   date: string;
   time: string;
-  duration: string;
-  staffName: string;
   advanceAmount: number;
   totalAmount: number;
   expenseAmount: number;
