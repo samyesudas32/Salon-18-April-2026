@@ -11,7 +11,8 @@ import {
   FileText, 
   LogOut, 
   Settings,
-  Shield
+  Shield,
+  Wallet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -35,6 +36,7 @@ const navItems = [
   { name: 'All Bookings', href: '/bookings', icon: Calendar },
   { name: 'Clients', href: '/clients', icon: Users },
   { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Daily Expense', href: '/expenses', icon: Wallet },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
