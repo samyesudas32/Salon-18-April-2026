@@ -20,6 +20,8 @@ export interface ServiceRecord {
   date: string;
   time: string;
   workType: string;
+  duration: string;
+  staffName: string;
 }
 
 export interface FinancialReport {

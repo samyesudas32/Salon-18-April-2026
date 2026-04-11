@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2 } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -30,7 +30,8 @@ export function ServiceTab() {
     return serviceRecords
       .filter(record => 
         record.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.workType.toLowerCase().includes(searchTerm.toLowerCase())
+        record.workType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.staffName && record.staffName.toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [serviceRecords, searchTerm]);
@@ -48,7 +49,7 @@ export function ServiceTab() {
           <div className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search delivery records..." 
+              placeholder="Search records or staff..." 
               className="pl-9 h-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -64,13 +65,15 @@ export function ServiceTab() {
                 <TableHead className="font-bold">Client Name</TableHead>
                 <TableHead className="font-bold">Appt. Time</TableHead>
                 <TableHead className="font-bold">Service</TableHead>
+                <TableHead className="font-bold">Staff Name</TableHead>
+                <TableHead className="font-bold">Duration</TableHead>
                 <TableHead className="font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     {searchTerm ? "No matching records found." : "No service delivery records found."}
                   </TableCell>
                 </TableRow>
@@ -96,6 +99,18 @@ export function ServiceTab() {
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                         <span>{record.workType}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{record.staffName || '---'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Hourglass className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{record.duration || '---'}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

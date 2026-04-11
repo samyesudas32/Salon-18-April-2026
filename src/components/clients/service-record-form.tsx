@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Pencil, User, Briefcase, Clock, CalendarIcon } from 'lucide-react';
+import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,6 +32,8 @@ const formSchema = z.object({
   workType: z.string().min(2, 'Service type is required'),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
+  duration: z.string().optional(),
+  staffName: z.string().optional(),
 });
 
 interface ServiceRecordFormProps {
@@ -50,6 +52,8 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       workType: record.workType,
       date: record.date,
       time: record.time,
+      duration: record.duration || '',
+      staffName: record.staffName || '',
     },
   });
 
@@ -60,12 +64,18 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         workType: record.workType,
         date: record.date,
         time: record.time,
+        duration: record.duration || '',
+        staffName: record.staffName || '',
       });
     }
   }, [record, form, open]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    updateServiceRecord(record.id, values);
+    updateServiceRecord(record.id, {
+      ...values,
+      duration: values.duration || '',
+      staffName: values.staffName || '',
+    });
     setOpen(false);
   };
 
@@ -119,6 +129,42 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                 </FormItem>
               )}
             />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="staffName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Attending Staff</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <UserCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Staff Name" className="pl-9" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Hourglass className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="e.g. 45 mins" className="pl-9" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
