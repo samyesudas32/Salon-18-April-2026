@@ -48,6 +48,16 @@ const prompt = ai.definePrompt({
 Your task is to analyze the provided financial report data and extract concise, actionable insights and identify key trends.
 Focus on business performance, identifying busiest periods, periods with highest profit, and providing strategic recommendations.
 
+Based on the data provided, generate a JSON object with the following fields: "summary", "keyFindings", "busiestPeriods", "highestProfitPeriods", and "actionableInsights".
+
+- "summary": A concise overall summary of the financial report and its key performance.
+- "keyFindings": An array of strings with key observations and data points from the report.
+- "busiestPeriods": An array of strings listing the periods that had the highest number of bookings.
+- "highestProfitPeriods": An array of strings listing the periods that yielded the highest net profit.
+- "actionableInsights": An array of strings with actionable recommendations or strategic decisions based on the analysis.
+
+Analyze the financial data below and provide the JSON output.
+
 Financial Report Type: {{{reportType}}}
 Report Period: {{{reportPeriod}}}
 
@@ -59,15 +69,6 @@ Financial Data:
 {{#if additionalNotes}}
 Additional Notes: {{{additionalNotes}}}
 {{/if}}
-
-Based on the data, provide:
-1.  An overall summary.
-2.  Key findings.
-3.  The periods with the highest number of bookings (busiest periods).
-4.  The periods with the highest net profit.
-5.  Actionable insights and strategic recommendations to improve business performance.
-
-Ensure your analysis is concise, clear, and directly actionable for a service business owner.
 `,
 });
 
