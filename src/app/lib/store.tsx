@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Booking, Expense, ProductExpense } from './types';
+import { Booking, Expense, ProductExpense, ServiceRecord } from './types';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -12,6 +12,11 @@ interface AppContextType {
   addBooking: (booking: Omit<Booking, 'id'>) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   deleteBooking: (id: string) => void;
+  // Service Record state (Independent from Bookings after creation)
+  serviceRecords: ServiceRecord[];
+  addServiceRecord: (record: Omit<ServiceRecord, 'id'>) => void;
+  updateServiceRecord: (id: string, record: Partial<ServiceRecord>) => void;
+  deleteServiceRecord: (id: string) => void;
   // Expense state
   expenses: Expense[];
   addExpense: (expense: Omit<Expense, 'id'>) => void;
@@ -31,63 +36,17 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const initialBookings: Booking[] = [
-  {
-    id: '1',
-    clientName: 'Acme Corp',
-    phoneNumber: '+91 98765 43210',
-    workType: 'Software Consulting',
-    date: '2024-06-15',
-    time: '10:00',
-    advanceAmount: 500,
-    totalAmount: 2000,
-    expenseAmount: 200,
-    notes: 'Initial strategy phase.',
-    balanceAmount: 1300,
-    status: 'upcoming',
-  },
-];
-
-const initialExpenses: Expense[] = [
-    {
-        id: '1',
-        date: new Date().toISOString().split('T')[0],
-        item: 'Office Supplies (e.g., paper, pens)',
-        amount: 150.00,
-    },
-    {
-        id: '2',
-        date: new Date().toISOString().split('T')[0],
-        item: 'Lunch with a client',
-        amount: 85.50,
-    }
-];
-
-const initialProductExpenses: ProductExpense[] = [
-    {
-        id: '1',
-        date: new Date().toISOString().split('T')[0],
-        productDetails: 'Hair Styling Gel (Brand X)',
-        amount: 350.00,
-    },
-    {
-        id: '2',
-        date: new Date().toISOString().split('T')[0],
-        productDetails: 'Shampoo & Conditioner Set (Brand Y)',
-        amount: 1200.00,
-    }
-];
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   
-  // Auth state (Admin Login)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [adminPassword, setAdminPassword] = useState<string>('Sam0438');
   const [isHydrated, setIsHydrated] = useState(false);
+  
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [productExpenses, setProductExpenses] = useState<ProductExpense[]>([]);
 
@@ -95,53 +54,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
     const storedPass = localStorage.getItem('adminPassword');
     const storedBookings = localStorage.getItem('bookings');
+    const storedServiceRecords = localStorage.getItem('serviceRecords');
     const storedExpenses = localStorage.getItem('expenses');
     const storedProductExpenses = localStorage.getItem('productExpenses');
     
     if (storedStatus) setIsLoggedIn(true);
     if (storedPass) setAdminPassword(storedPass);
 
-    if (storedBookings) {
-      setBookings(JSON.parse(storedBookings));
-    } else {
-      setBookings(initialBookings);
-    }
-    
-    if (storedExpenses) {
-      setExpenses(JSON.parse(storedExpenses));
-    } else {
-      setExpenses(initialExpenses);
-    }
-    
-    if (storedProductExpenses) {
-        setProductExpenses(JSON.parse(storedProductExpenses));
-    } else {
-        setProductExpenses(initialProductExpenses);
-    }
+    if (storedBookings) setBookings(JSON.parse(storedBookings));
+    if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
+    if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
+    if (storedProductExpenses) setProductExpenses(JSON.parse(storedProductExpenses));
     
     setIsHydrated(true);
   }, []);
 
-  // Persist bookings to localStorage on change
   useEffect(() => {
     if (isHydrated) {
       localStorage.setItem('bookings', JSON.stringify(bookings));
-    }
-  }, [bookings, isHydrated]);
-
-  // Persist expenses to localStorage on change
-  useEffect(() => {
-    if (isHydrated) {
+      localStorage.setItem('serviceRecords', JSON.stringify(serviceRecords));
       localStorage.setItem('expenses', JSON.stringify(expenses));
+      localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
     }
-  }, [expenses, isHydrated]);
-
-  // Persist product expenses to localStorage on change
-  useEffect(() => {
-    if (isHydrated) {
-        localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
-    }
-  }, [productExpenses, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -169,20 +104,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addBooking = (newBooking: Omit<Booking, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
-    setBookings((prev) => [...prev, { ...newBooking, id: id as string }]);
-    toast({ title: "Booking Saved", description: "The new appointment has been registered." });
+    const booking = { ...newBooking, id };
+    setBookings((prev) => [...prev, booking]);
+    
+    // Initially link: Create a record in Service Delivery tab too
+    addServiceRecord({
+      clientName: booking.clientName,
+      date: booking.date,
+      time: booking.time,
+      workType: booking.workType,
+    });
+    
+    toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
   };
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
-    );
-    toast({ title: "Updated", description: "Booking details have been saved." });
+    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    toast({ title: "Updated", description: "Booking details updated independently." });
   };
 
   const deleteBooking = (id: string) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
-    toast({ title: "Deleted", description: "Booking removed successfully." });
+    toast({ title: "Deleted", description: "Booking removed independently." });
+  };
+
+  const addServiceRecord = (newRecord: Omit<ServiceRecord, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setServiceRecords((prev) => [...prev, { ...newRecord, id }]);
+  };
+
+  const updateServiceRecord = (id: string, updates: Partial<ServiceRecord>) => {
+    setServiceRecords((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
+    toast({ title: "Service Updated", description: "Service delivery details updated independently." });
+  };
+
+  const deleteServiceRecord = (id: string) => {
+    setServiceRecords((prev) => prev.filter((r) => r.id !== id));
+    toast({ title: "Service Deleted", description: "Service record removed independently." });
   };
 
   const addExpense = (newExpense: Omit<Expense, 'id'>) => {
@@ -192,9 +150,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateExpense = (id: string, updates: Partial<Expense>) => {
-    setExpenses((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
-    );
+    setExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
     toast({ title: "Expense Updated", description: "The expense details have been saved." });
   };
 
@@ -210,9 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProductExpense = (id: string, updates: Partial<ProductExpense>) => {
-    setProductExpenses((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
-    );
+    setProductExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
     toast({ title: "Product Expense Updated", description: "The product expense details have been saved." });
   };
 
@@ -221,12 +175,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Product Expense Deleted", description: "The product expense has been removed." });
   };
 
-  // Auth Protection Logic
   useEffect(() => {
-    if (isHydrated) {
-      if (!isLoggedIn && pathname !== '/login') {
-        router.push('/login');
-      }
+    if (isHydrated && !isLoggedIn && pathname !== '/login') {
+      router.push('/login');
     }
   }, [isLoggedIn, pathname, router, isHydrated]);
 
@@ -234,9 +185,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">
-            G
-          </div>
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">G</div>
           <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
             <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-sm font-medium">Initializing Salon System...</p>
@@ -248,22 +197,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{ 
-      bookings, 
-      addBooking, 
-      updateBooking, 
-      deleteBooking,
-      expenses,
-      addExpense,
-      updateExpense,
-      deleteExpense,
-      productExpenses,
-      addProductExpense,
-      updateProductExpense,
-      deleteProductExpense,
-      isLoggedIn,
-      login,
-      logout,
-      updateAdminPassword
+      bookings, addBooking, updateBooking, deleteBooking,
+      serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
+      expenses, addExpense, updateExpense, deleteExpense,
+      productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
+      isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
     </AppContext.Provider>

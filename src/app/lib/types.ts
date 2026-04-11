@@ -14,6 +14,14 @@ export interface Booking {
   status: 'pending' | 'completed' | 'upcoming';
 }
 
+export interface ServiceRecord {
+  id: string;
+  clientName: string;
+  date: string;
+  time: string;
+  workType: string;
+}
+
 export interface FinancialReport {
   period: string;
   totalBookings: number;
