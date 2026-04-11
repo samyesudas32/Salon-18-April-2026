@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Booking, Expense, ProductExpense } from './types';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +39,8 @@ const initialBookings: Booking[] = [
     workType: 'Software Consulting',
     date: '2024-06-15',
     time: '10:00',
+    duration: '2 Hours',
+    staffName: 'Soumya',
     advanceAmount: 500,
     totalAmount: 2000,
     expenseAmount: 200,
