@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -41,7 +40,7 @@ export function ServiceTab() {
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <CardTitle>Service Delivery</CardTitle>
+            <CardTitle>Service Section</CardTitle>
             <CardDescription>
               Manage independent delivery records. Changes here do not affect the original booking.
             </CardDescription>
