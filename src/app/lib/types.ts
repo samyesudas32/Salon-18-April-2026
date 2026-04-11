@@ -28,3 +28,10 @@ export interface Expense {
   item: string;
   amount: number;
 }
+
+export interface ProductExpense {
+  id: string;
+  date: string;
+  productDetails: string;
+  amount: number;
+}

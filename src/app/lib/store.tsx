@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { Booking, Expense } from './types';
+import { Booking, Expense, ProductExpense } from './types';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +15,11 @@ interface AppContextType {
   addExpense: (expense: Omit<Expense, 'id'>) => void;
   updateExpense: (id: string, expense: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
+  // Product Expense state
+  productExpenses: ProductExpense[];
+  addProductExpense: (expense: Omit<ProductExpense, 'id'>) => void;
+  updateProductExpense: (id: string, expense: Partial<ProductExpense>) => void;
+  deleteProductExpense: (id: string) => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -56,6 +61,21 @@ const initialExpenses: Expense[] = [
     }
 ];
 
+const initialProductExpenses: ProductExpense[] = [
+    {
+        id: '1',
+        date: new Date().toISOString().split('T')[0],
+        productDetails: 'Hair Styling Gel (Brand X)',
+        amount: 350.00,
+    },
+    {
+        id: '2',
+        date: new Date().toISOString().split('T')[0],
+        productDetails: 'Shampoo & Conditioner Set (Brand Y)',
+        amount: 1200.00,
+    }
+];
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -67,12 +87,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [productExpenses, setProductExpenses] = useState<ProductExpense[]>([]);
 
   useEffect(() => {
     const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
     const storedPass = localStorage.getItem('adminPassword');
     const storedBookings = localStorage.getItem('bookings');
     const storedExpenses = localStorage.getItem('expenses');
+    const storedProductExpenses = localStorage.getItem('productExpenses');
     
     if (storedStatus) setIsLoggedIn(true);
     if (storedPass) setAdminPassword(storedPass);
@@ -87,6 +109,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setExpenses(JSON.parse(storedExpenses));
     } else {
       setExpenses(initialExpenses);
+    }
+    
+    if (storedProductExpenses) {
+        setProductExpenses(JSON.parse(storedProductExpenses));
+    } else {
+        setProductExpenses(initialProductExpenses);
     }
     
     setIsHydrated(true);
@@ -105,6 +133,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('expenses', JSON.stringify(expenses));
     }
   }, [expenses, isHydrated]);
+
+  // Persist product expenses to localStorage on change
+  useEffect(() => {
+    if (isHydrated) {
+        localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
+    }
+  }, [productExpenses, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -166,6 +201,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Expense Deleted", description: "The expense has been removed." });
   };
 
+  const addProductExpense = (newExpense: Omit<ProductExpense, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setProductExpenses((prev) => [{ ...newExpense, id }, ...prev]);
+    toast({ title: "Product Expense Added", description: "The new product expense has been recorded." });
+  };
+
+  const updateProductExpense = (id: string, updates: Partial<ProductExpense>) => {
+    setProductExpenses((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    );
+    toast({ title: "Product Expense Updated", description: "The product expense details have been saved." });
+  };
+
+  const deleteProductExpense = (id: string) => {
+    setProductExpenses((prev) => prev.filter((e) => e.id !== id));
+    toast({ title: "Product Expense Deleted", description: "The product expense has been removed." });
+  };
+
   // Auth Protection Logic
   useEffect(() => {
     if (isHydrated) {
@@ -187,6 +240,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addExpense,
       updateExpense,
       deleteExpense,
+      productExpenses,
+      addProductExpense,
+      updateProductExpense,
+      deleteProductExpense,
       isLoggedIn,
       login,
       logout,
