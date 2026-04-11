@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from '@/components/ui/form';
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
