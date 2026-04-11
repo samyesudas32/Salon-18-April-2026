@@ -1,9 +1,11 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Booking, Expense, ProductExpense } from './types';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface AppContextType {
   bookings: Booking[];
@@ -228,7 +230,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoggedIn, pathname, router, isHydrated]);
 
-  if (!isHydrated) return null;
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">
+            G
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <p className="text-sm font-medium">Initializing Salon System...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AppContext.Provider value={{ 
