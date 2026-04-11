@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Phone, Repeat, Briefcase } from 'lucide-react';
+import { User, Phone, Repeat, Briefcase, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const REGULAR_CUSTOMER_THRESHOLD = 3; // Min bookings to be considered a regular
 
 export function RegularClientsList() {
   const { bookings } = useApp();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const regularClients = useMemo(() => {
     const clientsMap = new Map<string, { name: string; phone: string; bookingCount: number; workTypes: Set<string> }>();
@@ -35,13 +37,33 @@ export function RegularClientsList() {
 
   }, [bookings]);
 
+  const filteredClients = useMemo(() => {
+    return regularClients.filter(client => 
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.phone.includes(searchTerm)
+    );
+  }, [regularClients, searchTerm]);
+
   return (
     <Card className="border-none shadow-sm">
       <CardHeader>
-        <CardTitle>Regular Customers</CardTitle>
-        <CardDescription>
-          Your most loyal clients with {REGULAR_CUSTOMER_THRESHOLD} or more bookings.
-        </CardDescription>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <CardTitle>Regular Customers</CardTitle>
+            <CardDescription>
+              Your most loyal clients with {REGULAR_CUSTOMER_THRESHOLD} or more bookings.
+            </CardDescription>
+          </div>
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search regulars..." 
+              className="pl-9 h-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border">
@@ -55,14 +77,14 @@ export function RegularClientsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {regularClients.length === 0 ? (
+              {filteredClients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    No regular clients found yet.
+                    {searchTerm ? "No matching regulars found." : "No regular clients found yet."}
                   </TableCell>
                 </TableRow>
               ) : (
-                regularClients.map((client) => (
+                filteredClients.map((client) => (
                   <TableRow key={client.name}>
                     <TableCell>
                       <div className="flex items-center gap-2">
