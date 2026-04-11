@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { Booking } from './types';
+import { Booking, Expense } from './types';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -10,6 +10,11 @@ interface AppContextType {
   addBooking: (booking: Omit<Booking, 'id'>) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   deleteBooking: (id: string) => void;
+  // Expense state
+  expenses: Expense[];
+  addExpense: (expense: Omit<Expense, 'id'>) => void;
+  updateExpense: (id: string, expense: Partial<Expense>) => void;
+  deleteExpense: (id: string) => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -19,7 +24,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const initialData: Booking[] = [
+const initialBookings: Booking[] = [
   {
     id: '1',
     clientName: 'Acme Corp',
@@ -36,6 +41,21 @@ const initialData: Booking[] = [
   },
 ];
 
+const initialExpenses: Expense[] = [
+    {
+        id: '1',
+        date: new Date().toISOString().split('T')[0],
+        item: 'Office Supplies (e.g., paper, pens)',
+        amount: 150.00,
+    },
+    {
+        id: '2',
+        date: new Date().toISOString().split('T')[0],
+        item: 'Lunch with a client',
+        amount: 85.50,
+    }
+];
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -45,16 +65,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [adminPassword, setAdminPassword] = useState<string>('Sam0438');
   const [isHydrated, setIsHydrated] = useState(false);
-  const [bookings, setBookings] = useState<Booking[]>(initialData);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
     const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
     const storedPass = localStorage.getItem('adminPassword');
     const storedBookings = localStorage.getItem('bookings');
+    const storedExpenses = localStorage.getItem('expenses');
     
     if (storedStatus) setIsLoggedIn(true);
     if (storedPass) setAdminPassword(storedPass);
-    if (storedBookings) setBookings(JSON.parse(storedBookings));
+
+    if (storedBookings) {
+      setBookings(JSON.parse(storedBookings));
+    } else {
+      setBookings(initialBookings);
+    }
+    
+    if (storedExpenses) {
+      setExpenses(JSON.parse(storedExpenses));
+    } else {
+      setExpenses(initialExpenses);
+    }
     
     setIsHydrated(true);
   }, []);
@@ -65,6 +98,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('bookings', JSON.stringify(bookings));
     }
   }, [bookings, isHydrated]);
+
+  // Persist expenses to localStorage on change
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+    }
+  }, [expenses, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -108,6 +148,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Deleted", description: "Booking removed successfully." });
   };
 
+  const addExpense = (newExpense: Omit<Expense, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setExpenses((prev) => [{ ...newExpense, id }, ...prev]);
+    toast({ title: "Expense Added", description: "The new expense has been recorded." });
+  };
+
+  const updateExpense = (id: string, updates: Partial<Expense>) => {
+    setExpenses((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    );
+    toast({ title: "Expense Updated", description: "The expense details have been saved." });
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    toast({ title: "Expense Deleted", description: "The expense has been removed." });
+  };
+
   // Auth Protection Logic
   useEffect(() => {
     if (isHydrated) {
@@ -125,6 +183,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addBooking, 
       updateBooking, 
       deleteBooking,
+      expenses,
+      addExpense,
+      updateExpense,
+      deleteExpense,
       isLoggedIn,
       login,
       logout,

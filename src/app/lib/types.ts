@@ -21,3 +21,10 @@ export interface FinancialReport {
   totalExpenses: number;
   netProfit: number;
 }
+
+export interface Expense {
+  id: string;
+  date: string;
+  item: string;
+  amount: number;
+}
