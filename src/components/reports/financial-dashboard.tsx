@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
-import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear } from 'date-fns';
+import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, TrendingUp, Download, FileText } from 'lucide-react';
@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function FinancialDashboard() {
-  const { bookings } = useApp();
+  const { bookings, expenses: dailyExpenses, productExpenses } = useApp();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalyzeFinancialReportsOutput | null>(null);
 
@@ -25,23 +25,40 @@ export function FinancialDashboard() {
     });
 
     return range.map(month => {
+      const monthIndex = getMonth(month);
+      const year = getYear(month);
+
       const monthBookings = bookings.filter(b => {
         const d = new Date(b.date);
-        return d.getMonth() === month.getMonth() && d.getFullYear() === month.getFullYear();
+        return getMonth(d) === monthIndex && getYear(d) === year;
+      });
+      
+      const monthDailyExpenses = dailyExpenses.filter(e => {
+        const d = new Date(e.date);
+        return getMonth(d) === monthIndex && getYear(d) === year;
+      });
+
+      const monthProductExpenses = productExpenses.filter(e => {
+        const d = new Date(e.date);
+        return getMonth(d) === monthIndex && getYear(d) === year;
       });
 
       const revenue = monthBookings.reduce((s, b) => s + b.totalAmount, 0);
-      const expenses = monthBookings.reduce((s, b) => s + b.expenseAmount, 0);
+      const bookingExpenses = monthBookings.reduce((s, b) => s + b.expenseAmount, 0);
+      const totalDailyExpenses = monthDailyExpenses.reduce((s, e) => s + e.amount, 0);
+      const totalProductExpenses = monthProductExpenses.reduce((s, e) => s + e.amount, 0);
+
+      const totalExpenses = bookingExpenses + totalDailyExpenses + totalProductExpenses;
       
       return {
         period: format(month, 'MMM yyyy'),
         totalBookings: monthBookings.length,
         totalRevenue: revenue,
-        totalExpenses: expenses,
-        netProfit: revenue - expenses,
+        totalExpenses: totalExpenses,
+        netProfit: revenue - totalExpenses,
       };
     });
-  }, [bookings]);
+  }, [bookings, dailyExpenses, productExpenses]);
 
   const annualReport = useMemo(() => {
     const now = new Date();
@@ -53,17 +70,31 @@ export function FinancialDashboard() {
       return d >= yearStart && d <= yearEnd;
     });
 
+    const yearDailyExpenses = dailyExpenses.filter(e => {
+        const d = new Date(e.date);
+        return d >= yearStart && d <= yearEnd;
+    });
+
+    const yearProductExpenses = productExpenses.filter(e => {
+        const d = new Date(e.date);
+        return d >= yearStart && d <= yearEnd;
+    });
+
     const revenue = yearBookings.reduce((s, b) => s + b.totalAmount, 0);
-    const expenses = yearBookings.reduce((s, b) => s + b.expenseAmount, 0);
+    const bookingExpenses = yearBookings.reduce((s, b) => s + b.expenseAmount, 0);
+    const totalDailyExpenses = yearDailyExpenses.reduce((s, e) => s + e.amount, 0);
+    const totalProductExpenses = yearProductExpenses.reduce((s, e) => s + e.amount, 0);
+
+    const totalExpenses = bookingExpenses + totalDailyExpenses + totalProductExpenses;
 
     return {
       period: format(now, 'yyyy'),
       totalBookings: yearBookings.length,
       totalRevenue: revenue,
-      totalExpenses: expenses,
-      netProfit: revenue - expenses,
+      totalExpenses: totalExpenses,
+      netProfit: revenue - totalExpenses,
     };
-  }, [bookings]);
+  }, [bookings, dailyExpenses, productExpenses]);
 
   const handleAIAnalysis = async () => {
     setIsAnalyzing(true);
@@ -72,7 +103,7 @@ export function FinancialDashboard() {
         reportType: 'monthly',
         reportPeriod: 'Last 6 Months',
         financialData: monthlyReport,
-        additionalNotes: 'Analysis requested for current business trend performance.',
+        additionalNotes: 'Analysis requested for current business trend performance. Total expenses include booking-specific expenses, daily operational costs, and product purchase costs.',
       });
       setAnalysis(result);
     } catch (error) {
@@ -100,7 +131,7 @@ export function FinancialDashboard() {
 
     autoTable(doc, {
       startY: 40,
-      head: [['Period', 'Bookings', 'Revenue', 'Expenses', 'Net Profit']],
+      head: [['Period', 'Bookings', 'Revenue', 'Total Expenses', 'Net Profit']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillStyle: 'f', fillColor: [33, 53, 85] },
@@ -240,7 +271,7 @@ export function FinancialDashboard() {
                   <th className="p-3 text-left">Period</th>
                   <th className="p-3 text-center">Bookings</th>
                   <th className="p-3 text-right">Revenue</th>
-                  <th className="p-3 text-right">Expenses</th>
+                  <th className="p-3 text-right">Total Expenses</th>
                   <th className="p-3 text-right">Net Profit</th>
                 </tr>
               </thead>
