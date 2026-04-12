@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -51,30 +50,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [productExpenses, setProductExpenses] = useState<ProductExpense[]>([]);
 
   useEffect(() => {
-    const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
-    const storedPass = localStorage.getItem('adminPassword');
-    const storedBookings = localStorage.getItem('bookings');
-    const storedServiceRecords = localStorage.getItem('serviceRecords');
-    const storedExpenses = localStorage.getItem('expenses');
-    const storedProductExpenses = localStorage.getItem('productExpenses');
-    
-    if (storedStatus) setIsLoggedIn(true);
-    if (storedPass) setAdminPassword(storedPass);
+    try {
+      const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
+      const storedPass = localStorage.getItem('adminPassword');
+      const storedBookings = localStorage.getItem('bookings');
+      const storedServiceRecords = localStorage.getItem('serviceRecords');
+      const storedExpenses = localStorage.getItem('expenses');
+      const storedProductExpenses = localStorage.getItem('productExpenses');
+      
+      if (storedStatus) setIsLoggedIn(true);
+      if (storedPass) setAdminPassword(storedPass);
 
-    if (storedBookings) setBookings(JSON.parse(storedBookings));
-    if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
-    if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
-    if (storedProductExpenses) setProductExpenses(JSON.parse(storedProductExpenses));
-    
-    setIsHydrated(true);
+      if (storedBookings) setBookings(JSON.parse(storedBookings));
+      if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
+      if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
+      if (storedProductExpenses) setProductExpenses(JSON.parse(storedProductExpenses));
+    } catch (e) {
+      console.warn("Could not restore state from local storage", e);
+    } finally {
+      setIsHydrated(true);
+    }
   }, []);
 
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem('bookings', JSON.stringify(bookings));
-      localStorage.setItem('serviceRecords', JSON.stringify(serviceRecords));
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
+      try {
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        localStorage.setItem('serviceRecords', JSON.stringify(serviceRecords));
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+        localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
+      } catch (e) {
+        console.error("Failed to save state to localStorage", e);
+      }
     }
   }, [bookings, serviceRecords, expenses, productExpenses, isHydrated]);
 
@@ -107,7 +114,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const booking = { ...newBooking, id };
     setBookings((prev) => [...prev, booking]);
     
-    // Initially link: Create a record in Service Delivery tab too
+    // Initially link: Create a record in Service Section too
     addServiceRecord({
       clientName: booking.clientName,
       date: booking.date,
