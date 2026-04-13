@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
 import { format, parseISO, getMonth } from 'date-fns';
-import { Pencil, Trash2, Wallet, CalendarOff } from 'lucide-react';
+import { Pencil, Trash2, Wallet, CalendarOff, Download } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import {
   AlertDialog,
@@ -27,13 +27,20 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent } from '@/components/ui/card';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ExpenseTableProps {
   monthFilter?: string;
 }
 
+const MONTHS_NAME = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
-  const { expenses, deleteExpense } = useApp();
+  const { expenses, deleteExpense, businessName } = useApp();
 
   const filteredExpenses = useMemo(() => {
     let filtered = [...expenses];
@@ -53,14 +60,87 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
     return filteredExpenses.reduce((acc, expense) => acc + expense.amount, 0);
   }, [filteredExpenses]);
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const monthLabel = monthFilter === 'all' ? 'All Months' : MONTHS_NAME[parseInt(monthFilter)];
+    const primaryColor = [33, 53, 85]; // Branding color
+
+    // Report Header
+    doc.setFontSize(22);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text(businessName.toUpperCase(), 105, 18, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DAILY EXPENSE REPORT', 105, 26, { align: 'center' });
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 32, 196, 32);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Report Period: ${monthLabel}`, 14, 40);
+    doc.text(`Generated Date: ${format(new Date(), 'PPP p')}`, 14, 45);
+    doc.text(`Total Monthly Expense: Rs ${totalExpense.toLocaleString()}`, 14, 50);
+
+    // Expense Table
+    autoTable(doc, {
+      startY: 55,
+      head: [['DATE', 'ITEM / DESCRIPTION', 'AMOUNT (RS)']],
+      body: filteredExpenses.map(e => [
+        format(parseISO(e.date), 'MMM dd, yyyy'),
+        e.item,
+        e.amount.toLocaleString()
+      ]),
+      foot: [[{ content: 'TOTAL MONTHLY EXPENDITURE', colSpan: 2, styles: { halign: 'right' } }, totalExpense.toLocaleString()]],
+      theme: 'striped',
+      headStyles: { 
+        fillColor: primaryColor, 
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 10
+      },
+      footStyles: {
+        fillColor: [240, 240, 240],
+        textColor: primaryColor,
+        fontStyle: 'bold',
+        fontSize: 11
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4
+      },
+      margin: { left: 14, right: 14 }
+    });
+
+    doc.save(`${businessName.replace(/\s+/g, '_')}_Expenses_${monthLabel}.pdf`);
+  };
+
   return (
-    <Card className="border-none shadow-sm">
+    <Card className="border-none shadow-sm overflow-hidden rounded-xl">
+      <div className="flex items-center justify-between p-5 bg-card border-b border-border/40">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-5 w-5 text-primary" />
+          <h3 className="font-bold text-primary">Expense Records</h3>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 border-primary/20 text-primary hover:bg-primary/5 h-9"
+          onClick={handleDownloadPDF}
+          disabled={filteredExpenses.length === 0}
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </Button>
+      </div>
       <CardContent className="p-0">
-        <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+        <div className="overflow-hidden">
         <Table>
             <TableHeader className="bg-muted/30">
             <TableRow>
-                <TableHead className="font-bold w-[150px]">Date</TableHead>
+                <TableHead className="font-bold w-[150px] py-4">Date</TableHead>
                 <TableHead className="font-bold">Item/Description</TableHead>
                 <TableHead className="font-bold text-right w-[150px]">Amount</TableHead>
                 <TableHead className="font-bold text-right w-[100px]">Actions</TableHead>
@@ -83,10 +163,10 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
                 </TableRow>
             ) : (
                 filteredExpenses.map((expense) => (
-                <TableRow key={expense.id} className="hover:bg-muted/20 transition-colors group">
+                <TableRow key={expense.id} className="hover:bg-muted/10 transition-colors group">
                     <TableCell className="font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</TableCell>
                     <TableCell className="text-muted-foreground">{expense.item}</TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-destructive">Rs {expense.amount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono font-bold text-destructive">Rs {expense.amount.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <ExpenseForm
@@ -127,9 +207,9 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
             </TableBody>
             {filteredExpenses.length > 0 && (
               <TableFooter>
-                  <TableRow className="bg-muted/40 font-bold">
-                      <TableCell colSpan={2} className="text-right">Total Expenses</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">Rs {totalExpense.toFixed(2)}</TableCell>
+                  <TableRow className="bg-muted/40 font-bold border-t-2">
+                      <TableCell colSpan={2} className="text-right text-primary uppercase tracking-tight">Total Monthly Expenditure</TableCell>
+                      <TableCell className="text-right font-black text-destructive text-lg">Rs {totalExpense.toLocaleString()}</TableCell>
                       <TableCell></TableCell>
                   </TableRow>
               </TableFooter>
