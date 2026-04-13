@@ -239,7 +239,6 @@ export function FinancialDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Downloads Section */}
       <div className="flex flex-wrap items-center gap-4 bg-card p-6 rounded-2xl border border-border/40 shadow-sm">
         <div className="flex-1 min-w-[250px]">
           <h3 className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2">

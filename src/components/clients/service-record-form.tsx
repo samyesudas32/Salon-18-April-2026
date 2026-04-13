@@ -133,7 +133,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-            {/* Section 1: Client & Schedule */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <User className="h-3.5 w-3.5" />
@@ -209,7 +208,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <Separator />
 
-            {/* Section 2: Service Delivery Details */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Briefcase className="h-3.5 w-3.5" />
@@ -239,7 +237,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   control={form.control}
                   name="staffName"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col justify-end">
                       <FormLabel>Attending Staff</FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -252,7 +250,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   )}
                 />
                 
-                <div className="space-y-2">
+                <div className="space-y-2 max-w-[200px]">
                   <FormLabel>Duration</FormLabel>
                   <div className="flex gap-2 items-start">
                     <FormField
@@ -274,7 +272,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                       control={form.control}
                       name="durationUnit"
                       render={({ field }) => (
-                        <FormItem className="w-[120px]">
+                        <FormItem className="w-[100px]">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-10">
@@ -297,7 +295,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <Separator />
 
-            {/* Section 3: Financial Summary */}
             <div className="space-y-4 bg-muted/30 p-5 rounded-xl border border-border/60 shadow-inner">
               <h3 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
@@ -387,7 +384,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
   );
 }
 
-// Local helper component for the edit icon
 const EditIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22h6-6Z"/><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
 );
