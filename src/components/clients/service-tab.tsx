@@ -58,7 +58,7 @@ export function ServiceTab() {
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Professional Care & Beauty Salon', 74, 21, { align: 'center' });
+    doc.text('Professional Beauty Care & Salon', 74, 21, { align: 'center' });
     
     doc.setFillColor(255, 255, 255, 0.2);
     doc.rect(40, 25, 68, 6, 'F');
@@ -119,7 +119,7 @@ export function ServiceTab() {
       }
     });
 
-    // 4. Financial Summary (Simplified: Only Total Amount)
+    // 4. Financial Summary (Only Total Charge as requested)
     const finalY = (doc as any).lastAutoTable.finalY + 15;
     const boxWidth = 70;
     const startX = 133 - boxWidth;
@@ -246,7 +246,7 @@ export function ServiceTab() {
                     <TableCell className="text-right px-6">
                       <div className="flex flex-col items-end">
                         <span className="text-sm font-black text-primary">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Amount</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Total</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
