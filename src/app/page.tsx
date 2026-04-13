@@ -3,13 +3,11 @@
 import { StatCards } from '@/components/dashboard/stat-cards';
 import { BookingForm } from '@/components/bookings/booking-form';
 import { BookingTable } from '@/components/bookings/booking-table';
-import { ExpenseTable } from '@/components/expenses/expense-table';
-import { ProductExpenseTable } from '@/components/product-expenses/product-expense-table';
 import { ServiceTab } from '@/components/clients/service-tab';
 import { FinancialDashboard } from '@/components/reports/financial-dashboard';
 import { DailyProfitOverview } from '@/components/dashboard/daily-profit-overview';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, FileText, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
@@ -27,8 +25,6 @@ export default function DashboardPage() {
     showStats, 
     showRecentBookings, 
     showServiceSection, 
-    showExpenses, 
-    showProductExpenses,
     showReports,
     showDailyProfit,
     toggleDashboardSection 
@@ -78,18 +74,6 @@ export default function DashboardPage() {
                 onCheckedChange={() => toggleDashboardSection('serviceSection')}
               >
                 Service Section
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={showExpenses}
-                onCheckedChange={() => toggleDashboardSection('expenses')}
-              >
-                Daily Expenses
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={showProductExpenses}
-                onCheckedChange={() => toggleDashboardSection('productExpenses')}
-              >
-                Product Expenses
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={showReports}
@@ -200,55 +184,9 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Daily Expenses Section */}
-        {showExpenses && (
-          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
-            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
-                  <Wallet className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-headline font-bold text-primary">Daily Expenses</CardTitle>
-                  <CardDescription>Latest operational and utility costs</CardDescription>
-                </div>
-              </div>
-              <Link href="/expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
-                Manage Expenses <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ExpenseTable />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Product Expenses Section */}
-        {showProductExpenses && (
-          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
-            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                  <ShoppingBag className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-headline font-bold text-primary">Product Purchase Log</CardTitle>
-                  <CardDescription>Tracking inventory and stock acquisition costs</CardDescription>
-                </div>
-              </div>
-              <Link href="/product-expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
-                Full Log <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ProductExpenseTable />
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && !showDailyProfit && (
+      {!showStats && !showRecentBookings && !showServiceSection && !showReports && !showDailyProfit && (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed border-border/60 animate-in fade-in zoom-in duration-500">
           <Layout className="h-12 w-12 opacity-20 mb-4" />
           <p className="text-lg font-medium">Dashboard is empty</p>
