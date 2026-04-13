@@ -13,6 +13,7 @@ interface AppContextType {
   addBooking: (booking: Omit<Booking, 'id'>) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   deleteBooking: (id: string) => void;
+  deleteBookings: (ids: string[]) => void;
   // Service Record state
   serviceRecords: ServiceRecord[];
   addServiceRecord: (record: Omit<ServiceRecord, 'id'>) => void;
@@ -85,13 +86,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const getSafeParsed = (key: string) => {
         try {
           const item = localStorage.getItem(key);
-          // Check for empty, null, or common non-JSON strings
           if (!item || item === 'undefined' || item === 'null' || item.trim() === '') return null;
-          
-          // Basic check for JSON object or array structure
           const trimmed = item.trim();
           if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
-          
           return JSON.parse(item);
         } catch (e) {
           console.warn(`SafeParse: Failed to parse key "${key}"`, e);
@@ -242,6 +239,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Deleted", description: "Booking removed." });
   };
 
+  const deleteBookings = (ids: string[]) => {
+    setBookings((prev) => prev.filter((b) => !ids.includes(b.id)));
+    toast({ 
+      title: "Bulk Delete Successful", 
+      description: `${ids.length} booking records have been permanently removed.` 
+    });
+  };
+
   const addServiceRecord = (newRecord: Omit<ServiceRecord, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
     setServiceRecords((prev) => [...prev, { ...newRecord, id }]);
@@ -313,7 +318,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{ 
-      bookings, addBooking, updateBooking, deleteBooking,
+      bookings, addBooking, updateBooking, deleteBooking, deleteBookings,
       serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
