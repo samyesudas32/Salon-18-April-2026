@@ -30,7 +30,8 @@ interface AppContextType {
   // Business Identity
   businessName: string;
   businessShortName: string;
-  updateBusinessIdentity: (name: string, shortName: string) => void;
+  adminName: string;
+  updateBusinessIdentity: (name: string, shortName: string, adminName: string) => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -57,6 +58,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Business Identity State
   const [businessName, setBusinessName] = useState<string>('Salon of Guzellik');
   const [businessShortName, setBusinessShortName] = useState<string>('G');
+  const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
 
   useEffect(() => {
     try {
@@ -68,11 +70,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedProductExpenses = localStorage.getItem('productExpenses');
       const storedBusinessName = localStorage.getItem('businessName');
       const storedBusinessShortName = localStorage.getItem('businessShortName');
+      const storedAdminName = localStorage.getItem('adminName');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
       if (storedBusinessName) setBusinessName(storedBusinessName);
       if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
+      if (storedAdminName) setAdminName(storedAdminName);
 
       if (storedBookings) setBookings(JSON.parse(storedBookings));
       if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
@@ -94,11 +98,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
         localStorage.setItem('businessName', businessName);
         localStorage.setItem('businessShortName', businessShortName);
+        localStorage.setItem('adminName', adminName);
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -124,10 +129,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: 'Password updated successfully!' };
   };
 
-  const updateBusinessIdentity = (name: string, shortName: string) => {
+  const updateBusinessIdentity = (name: string, shortName: string, admin: string) => {
     setBusinessName(name);
     setBusinessShortName(shortName);
-    toast({ title: "Identity Updated", description: "Business branding has been saved." });
+    setAdminName(admin);
+    toast({ title: "Identity Updated", description: "Business branding and administrator details have been saved." });
   };
 
   const addBooking = (newBooking: Omit<Booking, 'id'>) => {
@@ -234,7 +240,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
-      businessName, businessShortName, updateBusinessIdentity,
+      businessName, businessShortName, adminName, updateBusinessIdentity,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}

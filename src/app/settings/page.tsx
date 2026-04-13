@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { updateAdminPassword, businessName, businessShortName, updateBusinessIdentity } = useApp();
+  const { updateAdminPassword, businessName, businessShortName, adminName, updateBusinessIdentity } = useApp();
   const { toast } = useToast();
   
   // Password State
@@ -25,23 +25,25 @@ export default function SettingsPage() {
   // Identity State
   const [tempBusinessName, setTempBusinessName] = useState(businessName);
   const [tempShortName, setTempShortName] = useState(businessShortName);
+  const [tempAdminName, setTempAdminName] = useState(adminName);
 
   useEffect(() => {
     setTempBusinessName(businessName);
     setTempShortName(businessShortName);
-  }, [businessName, businessShortName]);
+    setTempAdminName(adminName);
+  }, [businessName, businessShortName, adminName]);
 
   const handleUpdateIdentity = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tempBusinessName.trim() || !tempShortName.trim()) {
+    if (!tempBusinessName.trim() || !tempShortName.trim() || !tempAdminName.trim()) {
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: "Business name and initial cannot be empty.",
+        description: "Business name, logo initial, and administrator name cannot be empty.",
       });
       return;
     }
-    updateBusinessIdentity(tempBusinessName, tempShortName);
+    updateBusinessIdentity(tempBusinessName, tempShortName, tempAdminName);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -98,7 +100,7 @@ export default function SettingsPage() {
               <Building2 className="h-5 w-5 text-primary" />
               <CardTitle className="text-xl">Business Identity</CardTitle>
             </div>
-            <CardDescription>Update how your salon appears on the sidebar and site.</CardDescription>
+            <CardDescription>Update how your salon and profile appear on the site.</CardDescription>
           </CardHeader>
           <form onSubmit={handleUpdateIdentity} className="flex-1 flex flex-col">
             <CardContent className="space-y-4 flex-1">
@@ -130,10 +132,24 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1 px-1">This letter appears in the sidebar and loading screen.</p>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="adminName">Administrator Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="adminName"
+                    className="pl-10"
+                    value={tempAdminName}
+                    onChange={(e) => setTempAdminName(e.target.value)}
+                    required
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1 px-1">This name appears in the top-right header.</p>
+              </div>
             </CardContent>
             <CardFooter className="pt-4">
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Save Branding
+                Save Branding & Profile
               </Button>
             </CardFooter>
           </form>

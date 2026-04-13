@@ -7,6 +7,7 @@ import { AppProvider } from '@/app/lib/store';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { PhotoUpload } from '@/components/layout/photo-upload';
+import { AdminProfileHeader } from '@/components/layout/admin-profile-header';
 
 export const metadata: Metadata = {
   title: 'ServiceFlow Hub',
@@ -42,10 +43,7 @@ export default function RootLayout({
                       </div>
                     </div>
                     <div className="flex items-center gap-4 justify-end">
-                      <div className="text-xs text-right hidden sm:block">
-                        <p className="font-bold text-primary">Administrator</p>
-                        <p className="text-muted-foreground">Soumya Yesudas</p>
-                      </div>
+                      <AdminProfileHeader />
                     </div>
                   </header>
                   <main className="flex-1 overflow-y-auto p-6 md:p-8">
