@@ -71,7 +71,7 @@ export default function DashboardPage() {
                 checked={showRecentBookings}
                 onCheckedChange={() => toggleDashboardSection('bookings')}
               >
-                All Recent Bookings
+                Show All Bookings
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1.5">
@@ -182,13 +182,13 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Recent Bookings Section */}
+        {/* All Bookings Section */}
         {showRecentBookings && (
           <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
             <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
               <div>
-                <CardTitle className="text-xl font-headline font-bold text-primary">Recent Bookings</CardTitle>
-                <CardDescription>The latest entries in your booking history</CardDescription>
+                <CardTitle className="text-xl font-headline font-bold text-primary">All Bookings</CardTitle>
+                <CardDescription>The complete log of your service appointments</CardDescription>
               </div>
               <Link href="/bookings" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
                 View All <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
