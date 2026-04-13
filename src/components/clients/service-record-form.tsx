@@ -42,7 +42,7 @@ const formSchema = z.object({
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
   durationValue: z.string().optional(),
-  durationUnit: z.string().default('mins'),
+  durationUnit: z.string().default('minutes'),
   staffName: z.string().optional(),
   totalAmount: z.coerce.number().min(0),
   advanceAmount: z.coerce.number().min(0),
@@ -67,7 +67,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       date: record.date,
       time: record.time,
       durationValue: record.duration?.split(' ')[0] || '',
-      durationUnit: record.duration?.split(' ')[1] || 'mins',
+      durationUnit: record.duration?.split(' ')[1] || 'minutes',
       staffName: record.staffName || '',
       totalAmount: record.totalAmount || 0,
       advanceAmount: record.advanceAmount || 0,
@@ -85,7 +85,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         date: record.date,
         time: record.time,
         durationValue: parts[0] || '',
-        durationUnit: parts[1] || 'mins',
+        durationUnit: parts[1] || 'minutes',
         staffName: record.staffName || '',
         totalAmount: record.totalAmount || 0,
         advanceAmount: record.advanceAmount || 0,
@@ -273,7 +273,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                       control={form.control}
                       name="durationUnit"
                       render={({ field }) => (
-                        <FormItem className="w-[85px]">
+                        <FormItem className="w-[105px]">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-10">
@@ -281,7 +281,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="mins">Mins</SelectItem>
+                              <SelectItem value="minutes">Minutes</SelectItem>
                               <SelectItem value="hrs">Hrs</SelectItem>
                             </SelectContent>
                           </Select>
