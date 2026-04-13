@@ -56,7 +56,7 @@ export function DailyProfitOverview() {
       <Card className="border-none shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold text-destructive uppercase tracking-wider">Today's Total Costs</CardTitle>
+            <CardTitle className="text-sm font-bold text-destructive uppercase tracking-wider">Daily Expenses</CardTitle>
             <ArrowDownRight className="h-4 w-4 text-destructive opacity-70" />
           </div>
         </CardHeader>
