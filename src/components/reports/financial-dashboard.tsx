@@ -1,12 +1,13 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
-import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear } from 'date-fns';
+import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, TrendingUp, Download, FileText } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar } from 'lucide-react';
 import { analyzeFinancialReports, type AnalyzeFinancialReportsOutput } from '@/ai/flows/analyze-financial-reports';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import jsPDF from 'jspdf';
@@ -22,6 +23,37 @@ export function FinancialDashboard() {
   const { bookings, expenses: dailyExpenses, productExpenses, businessName } = useApp();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalyzeFinancialReportsOutput | null>(null);
+
+  const dailyReport = useMemo(() => {
+    const now = new Date();
+    const daysInMonth = eachDayOfInterval({
+      start: startOfMonth(now),
+      end: endOfMonth(now),
+    });
+
+    return daysInMonth.map(day => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+
+      const dayBookings = bookings.filter(b => b.date === dayStr && b.status === 'completed');
+      const dayDailyExpenses = dailyExpenses.filter(e => e.date === dayStr);
+      const dayProductExpenses = productExpenses.filter(e => e.date === dayStr);
+
+      const revenue = dayBookings.reduce((s, b) => s + b.totalAmount, 0);
+      const bExpenses = dayBookings.reduce((s, b) => s + b.expenseAmount, 0);
+      const dExpenses = dayDailyExpenses.reduce((s, e) => s + e.amount, 0);
+      const pExpenses = dayProductExpenses.reduce((s, e) => s + e.amount, 0);
+
+      const totalExpenses = bExpenses + dExpenses + pExpenses;
+
+      return {
+        period: format(day, 'MMM dd'),
+        totalBookings: dayBookings.length,
+        totalRevenue: revenue,
+        totalExpenses: totalExpenses,
+        netProfit: revenue - totalExpenses,
+      };
+    });
+  }, [bookings, dailyExpenses, productExpenses]);
 
   const monthlyReport = useMemo(() => {
     const now = new Date();
@@ -123,14 +155,17 @@ export function FinancialDashboard() {
     }
   };
 
-  const downloadPDF = (type: 'monthly' | 'annual') => {
+  const downloadPDF = (type: 'daily' | 'monthly' | 'annual') => {
     const doc = new jsPDF();
     
     let title = '';
     let tableData = [];
     let headers = ['Period', 'Completed', 'Revenue', 'Expenses', 'Net Profit'];
 
-    if (type === 'monthly') {
+    if (type === 'daily') {
+      title = `Daily Financial Report (${format(new Date(), 'MMMM yyyy')})`;
+      tableData = dailyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
+    } else if (type === 'monthly') {
       title = 'Monthly Financial Report (Last 6 Months)';
       tableData = monthlyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
     } else {
@@ -180,6 +215,15 @@ export function FinancialDashboard() {
           <p className="text-xs text-muted-foreground mt-1">Download your detailed financial statements in PDF format.</p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 border-emerald-200 hover:bg-emerald-50 text-emerald-700 font-semibold"
+            onClick={() => downloadPDF('daily')}
+          >
+            <Calendar className="h-4 w-4" />
+            Daily PDF
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
