@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone, Printer, IndianRupee, FileText } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -45,78 +45,122 @@ export function ServiceTab() {
       format: 'a5' 
     });
 
-    // Header with primary color background
-    doc.setFillColor(33, 53, 85); 
-    doc.rect(0, 0, 148, 40, 'F');
+    const primaryColor = [33, 53, 85]; // Dark Blue
+    const accentColor = [191, 78, 57]; // Soft Orange/Accent
+
+    // 1. Header with branding
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
+    doc.rect(0, 0, 148, 35, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('SALON OF GUZELLIK', 74, 18, { align: 'center' });
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Professional Care & Beauty Services', 74, 25, { align: 'center' });
-    doc.text('SERVICE DELIVERY SLIP', 74, 32, { align: 'center' });
-
-    // Client & Appointment Info
-    doc.setTextColor(33, 53, 85);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CLIENT DETAILS', 15, 50);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Name: ${record.clientName}`, 15, 57);
-    doc.text(`Phone: ${record.phoneNumber || 'N/A'}`, 15, 64);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('APPOINTMENT', 90, 50);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${format(new Date(record.date), 'MMM dd, yyyy')}`, 90, 57);
-    doc.text(`Time: ${record.time}`, 90, 64);
-
-    // Service Description Table
-    autoTable(doc, {
-      startY: 75,
-      head: [['SERVICE DESCRIPTION', 'ATTENDING STAFF', 'DURATION']],
-      body: [
-        [record.workType, record.staffName || '---', record.duration || '---']
-      ],
-      styles: { fontSize: 9, cellPadding: 5 },
-      headStyles: { fillColor: [33, 53, 85], textColor: [255, 255, 255] },
-    });
-
-    // Professional Bill Section
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    
-    doc.setDrawColor(200, 200, 200);
-    doc.line(80, finalY, 133, finalY);
+    doc.setFontSize(20);
+    doc.text('SALON OF GUZELLIK', 74, 15, { align: 'center' });
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
+    doc.text('Professional Care & Beauty Services', 74, 21, { align: 'center' });
+    
+    doc.setFillColor(255, 255, 255, 0.2);
+    doc.rect(40, 25, 68, 6, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SERVICE DELIVERY SLIP', 74, 29, { align: 'center' });
+
+    // 2. Info Grid Layout
+    let currentY = 45;
+    
+    // Labels
     doc.setTextColor(100, 100, 100);
-    doc.text('Total Amount:', 80, finalY + 6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CLIENT DETAILS', 15, currentY);
+    doc.text('APPOINTMENT INFO', 85, currentY);
+
+    // Separator line
+    doc.setDrawColor(230, 230, 230);
+    doc.line(15, currentY + 2, 133, currentY + 2);
+
+    currentY += 8;
+
+    // Client Values
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(record.clientName, 15, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(record.phoneNumber || 'No Phone provided', 15, currentY + 5);
+    
+    // Appointment Values
+    doc.setFont('helvetica', 'bold');
+    doc.text(format(new Date(record.date), 'MMM dd, yyyy'), 85, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Time: ${record.time}`, 85, currentY + 5);
+
+    currentY += 15;
+
+    // 3. Service Table
+    autoTable(doc, {
+      startY: currentY,
+      head: [['SERVICE DESCRIPTION', 'STAFF', 'DURATION']],
+      body: [
+        [record.workType, record.staffName || 'N/A', record.duration || '---']
+      ],
+      margin: { left: 15, right: 15 },
+      styles: { 
+        fontSize: 9, 
+        cellPadding: 4,
+        valign: 'middle',
+        lineColor: [240, 240, 240],
+        lineWidth: 0.1,
+      },
+      headStyles: { 
+        fillColor: primaryColor, 
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [252, 252, 252]
+      }
+    });
+
+    // 4. Financial Summary (Professionally aligned box)
+    const finalY = (doc as any).lastAutoTable.finalY + 12;
+    const boxWidth = 60;
+    const startX = 133 - boxWidth;
+
+    // Table-like lines for financials
+    doc.setDrawColor(220, 220, 220);
+    doc.line(startX, finalY, 133, finalY); // Top line
+    
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.setFont('helvetica', 'normal');
+    
+    doc.text('Total Service Charge', startX, finalY + 6);
     doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 6, { align: 'right' });
     
-    doc.text('Advance Paid:', 80, finalY + 12);
+    doc.text('Advance Received', startX, finalY + 12);
     doc.text(`Rs ${record.advanceAmount?.toLocaleString() || '0'}`, 133, finalY + 12, { align: 'right' });
     
-    doc.setDrawColor(33, 53, 85);
-    doc.line(80, finalY + 15, 133, finalY + 15);
+    // Emphasis line for Balance
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(0.5);
+    doc.line(startX, finalY + 16, 133, finalY + 16);
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(33, 53, 85);
-    doc.text('BALANCE DUE:', 80, finalY + 22);
-    doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 22, { align: 'right' });
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('BALANCE DUE', startX, finalY + 23);
+    doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 23, { align: 'right' });
 
-    // Footer
-    doc.setTextColor(150, 150, 150);
+    // 5. Footer
+    doc.setTextColor(160, 160, 160);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for choosing Salon of Guzellik!', 74, 135, { align: 'center' });
-    doc.text('This is a computer-generated delivery slip.', 74, 140, { align: 'center' });
+    doc.text('Thank you for visiting Salon of Guzellik!', 74, 185, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Ref: ${record.id.toUpperCase()}`, 74, 190, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
