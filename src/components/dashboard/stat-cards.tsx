@@ -30,7 +30,7 @@ export function StatCards() {
         { label: "Today’s Bookings", value: '...', icon: CalendarDays, color: 'text-purple-600', bg: 'bg-purple-50', borderColor: 'border-purple-100' },
         { label: "Today's Completed", value: '...', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', borderColor: 'border-emerald-100' },
         { label: "Upcoming Booking", value: '...', icon: CalendarClock, color: 'text-blue-600', bg: 'bg-blue-50', borderColor: 'border-blue-100' },
-        { label: "Monthly Financial Overview", value: '...', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50', borderColor: 'border-orange-100' },
+        { label: "Monthly Financial Overview ( Profit )", value: '...', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50', borderColor: 'border-orange-100' },
       ];
     }
 
@@ -104,7 +104,7 @@ export function StatCards() {
         borderColor: 'border-blue-100/50',
       },
       {
-        label: "Monthly Financial Overview",
+        label: "Monthly Financial Overview ( Profit )",
         value: `Rs ${totalProfit.toLocaleString()}`,
         icon: TrendingUp,
         color: 'text-orange-600',
