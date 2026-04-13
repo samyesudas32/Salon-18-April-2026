@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -117,9 +118,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Initially link: Create a record in Service Section too
     addServiceRecord({
       clientName: booking.clientName,
+      phoneNumber: booking.phoneNumber,
       date: booking.date,
       time: booking.time,
       workType: booking.workType,
+      duration: '',
+      staffName: '',
     });
     
     toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });

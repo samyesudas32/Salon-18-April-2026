@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass } from 'lucide-react';
+import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +29,7 @@ import { ServiceRecord } from '@/app/lib/types';
 
 const formSchema = z.object({
   clientName: z.string().min(2, 'Name is required'),
+  phoneNumber: z.string().min(10, 'Valid phone number is required'),
   workType: z.string().min(2, 'Service type is required'),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
@@ -49,6 +50,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientName: record.clientName,
+      phoneNumber: record.phoneNumber || '',
       workType: record.workType,
       date: record.date,
       time: record.time,
@@ -61,6 +63,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
     if (open) {
       form.reset({
         clientName: record.clientName,
+        phoneNumber: record.phoneNumber || '',
         workType: record.workType,
         date: record.date,
         time: record.time,
@@ -97,22 +100,41 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-            <FormField
-              control={form.control}
-              name="clientName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Client Name</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input className="pl-9" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="clientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Name</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input className="pl-9" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input className="pl-9" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="workType"

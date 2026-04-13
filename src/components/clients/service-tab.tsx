@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -30,6 +31,7 @@ export function ServiceTab() {
       .filter(record => 
         record.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.workType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.phoneNumber && record.phoneNumber.includes(searchTerm)) ||
         (record.staffName && record.staffName.toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -62,6 +64,7 @@ export function ServiceTab() {
             <TableHeader className="bg-muted/30">
               <TableRow>
                 <TableHead className="font-bold">Client Name</TableHead>
+                <TableHead className="font-bold">Phone</TableHead>
                 <TableHead className="font-bold">Appt. Time</TableHead>
                 <TableHead className="font-bold">Service</TableHead>
                 <TableHead className="font-bold">Staff Name</TableHead>
@@ -72,7 +75,7 @@ export function ServiceTab() {
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     {searchTerm ? "No matching records found." : "No service delivery records found."}
                   </TableCell>
                 </TableRow>
@@ -83,6 +86,12 @@ export function ServiceTab() {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium text-primary">{record.clientName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        <span className="text-xs">{record.phoneNumber}</span>
                       </div>
                     </TableCell>
                     <TableCell>

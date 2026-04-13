@@ -17,6 +17,7 @@ export interface Booking {
 export interface ServiceRecord {
   id: string;
   clientName: string;
+  phoneNumber: string;
   date: string;
   time: string;
   workType: string;
