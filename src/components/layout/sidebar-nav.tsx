@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -46,7 +47,7 @@ const navItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { logout, isLoggedIn } = useApp();
+  const { logout, isLoggedIn, businessName, businessShortName } = useApp();
 
   if (!isLoggedIn || pathname === '/login') return null;
 
@@ -55,9 +56,11 @@ export function SidebarNav() {
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
-            G
+            {businessShortName}
           </div>
-          <span className="font-headline font-bold text-xl tracking-tight text-primary">Salon of Guzellik</span>
+          <span className="font-headline font-bold text-xl tracking-tight text-primary truncate max-w-[160px]">
+            {businessName}
+          </span>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-4">

@@ -12,7 +12,7 @@ interface AppContextType {
   addBooking: (booking: Omit<Booking, 'id'>) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   deleteBooking: (id: string) => void;
-  // Service Record state (Independent from Bookings after creation)
+  // Service Record state
   serviceRecords: ServiceRecord[];
   addServiceRecord: (record: Omit<ServiceRecord, 'id'>) => void;
   updateServiceRecord: (id: string, record: Partial<ServiceRecord>) => void;
@@ -27,6 +27,10 @@ interface AppContextType {
   addProductExpense: (expense: Omit<ProductExpense, 'id'>) => void;
   updateProductExpense: (id: string, expense: Partial<ProductExpense>) => void;
   deleteProductExpense: (id: string) => void;
+  // Business Identity
+  businessName: string;
+  businessShortName: string;
+  updateBusinessIdentity: (name: string, shortName: string) => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -50,6 +54,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [productExpenses, setProductExpenses] = useState<ProductExpense[]>([]);
 
+  // Business Identity State
+  const [businessName, setBusinessName] = useState<string>('Salon of Guzellik');
+  const [businessShortName, setBusinessShortName] = useState<string>('G');
+
   useEffect(() => {
     try {
       const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
@@ -58,9 +66,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedServiceRecords = localStorage.getItem('serviceRecords');
       const storedExpenses = localStorage.getItem('expenses');
       const storedProductExpenses = localStorage.getItem('productExpenses');
+      const storedBusinessName = localStorage.getItem('businessName');
+      const storedBusinessShortName = localStorage.getItem('businessShortName');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
+      if (storedBusinessName) setBusinessName(storedBusinessName);
+      if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
 
       if (storedBookings) setBookings(JSON.parse(storedBookings));
       if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
@@ -80,11 +92,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('serviceRecords', JSON.stringify(serviceRecords));
         localStorage.setItem('expenses', JSON.stringify(expenses));
         localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
+        localStorage.setItem('businessName', businessName);
+        localStorage.setItem('businessShortName', businessShortName);
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -110,12 +124,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: 'Password updated successfully!' };
   };
 
+  const updateBusinessIdentity = (name: string, shortName: string) => {
+    setBusinessName(name);
+    setBusinessShortName(shortName);
+    toast({ title: "Identity Updated", description: "Business branding has been saved." });
+  };
+
   const addBooking = (newBooking: Omit<Booking, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
     const booking = { ...newBooking, id };
     setBookings((prev) => [...prev, booking]);
     
-    // Initially link: Create a record in Service Section too
     addServiceRecord({
       clientName: booking.clientName,
       phoneNumber: booking.phoneNumber,
@@ -134,12 +153,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
     setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
-    toast({ title: "Updated", description: "Booking details updated independently." });
+    toast({ title: "Updated", description: "Booking details updated." });
   };
 
   const deleteBooking = (id: string) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
-    toast({ title: "Deleted", description: "Booking removed independently." });
+    toast({ title: "Deleted", description: "Booking removed." });
   };
 
   const addServiceRecord = (newRecord: Omit<ServiceRecord, 'id'>) => {
@@ -149,12 +168,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateServiceRecord = (id: string, updates: Partial<ServiceRecord>) => {
     setServiceRecords((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
-    toast({ title: "Service Updated", description: "Service delivery details updated independently." });
+    toast({ title: "Service Updated", description: "Service record updated." });
   };
 
   const deleteServiceRecord = (id: string) => {
     setServiceRecords((prev) => prev.filter((r) => r.id !== id));
-    toast({ title: "Service Deleted", description: "Service record removed independently." });
+    toast({ title: "Service Deleted", description: "Service record removed." });
   };
 
   const addExpense = (newExpense: Omit<Expense, 'id'>) => {
@@ -199,10 +218,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">G</div>
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">{businessShortName}</div>
           <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <p className="text-sm font-medium">Initializing Salon System...</p>
+            <p className="text-sm font-medium">Initializing {businessName}...</p>
           </div>
         </div>
       </div>
@@ -215,6 +234,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
+      businessName, businessShortName, updateBusinessIdentity,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
