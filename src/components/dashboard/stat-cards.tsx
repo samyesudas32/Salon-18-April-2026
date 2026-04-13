@@ -124,7 +124,7 @@ export function StatCards() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                <p className="text-[10px] font-bold text-muted-foreground tracking-wider">{stat.label}</p>
                 <h3 className="text-xl font-black text-primary tracking-tight">{stat.value}</h3>
               </div>
               <div className={cn("p-2.5 rounded-xl transition-all group-hover:scale-110 flex items-center justify-center shrink-0", stat.bg, stat.color)}>
