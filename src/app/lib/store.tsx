@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports' | 'dailyProfit';
+export type DashboardSection = 'stats' | 'bookings' | 'completedHistory' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports' | 'dailyProfit';
 
 interface AppContextType {
   bookings: Booking[];
@@ -39,6 +39,7 @@ interface AppContextType {
   // Dashboard Config
   showStats: boolean;
   showRecentBookings: boolean;
+  showCompletedHistory: boolean;
   showServiceSection: boolean;
   showExpenses: boolean;
   showProductExpenses: boolean;
@@ -76,6 +77,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Dashboard Visibility State
   const [showStats, setShowStats] = useState<boolean>(true);
   const [showRecentBookings, setShowRecentBookings] = useState<boolean>(true);
+  const [showCompletedHistory, setShowCompletedHistory] = useState<boolean>(false);
   const [showServiceSection, setShowServiceSection] = useState<boolean>(false);
   const [showExpenses, setShowExpenses] = useState<boolean>(false);
   const [showProductExpenses, setShowProductExpenses] = useState<boolean>(false);
@@ -111,6 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
+      const storedShowCompletedHistory = localStorage.getItem('showCompletedHistory');
       const storedShowServiceSection = localStorage.getItem('showServiceSection');
       const storedShowExpenses = localStorage.getItem('showExpenses');
       const storedShowProductExpenses = localStorage.getItem('showProductExpenses');
@@ -125,6 +128,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
+      if (storedShowCompletedHistory !== null) setShowCompletedHistory(storedShowCompletedHistory === 'true');
       if (storedShowServiceSection !== null) setShowServiceSection(storedShowServiceSection === 'true');
       if (storedShowExpenses !== null) setShowExpenses(storedShowExpenses === 'true');
       if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
@@ -155,6 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         
         localStorage.setItem('showStats', String(showStats));
         localStorage.setItem('showRecentBookings', String(showRecentBookings));
+        localStorage.setItem('showCompletedHistory', String(showCompletedHistory));
         localStorage.setItem('showServiceSection', String(showServiceSection));
         localStorage.setItem('showExpenses', String(showExpenses));
         localStorage.setItem('showProductExpenses', String(showProductExpenses));
@@ -164,7 +169,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -202,6 +207,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     switch(section) {
       case 'stats': setShowStats(!showStats); newState = !showStats; break;
       case 'bookings': setShowRecentBookings(!showRecentBookings); newState = !showRecentBookings; break;
+      case 'completedHistory': setShowCompletedHistory(!showCompletedHistory); newState = !showCompletedHistory; break;
       case 'serviceSection': setShowServiceSection(!showServiceSection); newState = !showServiceSection; break;
       case 'expenses': setShowExpenses(!showExpenses); newState = !showExpenses; break;
       case 'productExpenses': setShowProductExpenses(!showProductExpenses); newState = !showProductExpenses; break;
@@ -347,7 +353,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, adminName, updateBusinessIdentity,
-      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
+      showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
