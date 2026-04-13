@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import jsPDF from 'jsPDF';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function ServiceTab() {
@@ -112,8 +112,8 @@ export function ServiceTab() {
     doc.setTextColor(150, 150, 150);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for choosing Salon of Guzellik!', 74, 195, { align: 'center' });
-    doc.text('This is a computer-generated delivery slip.', 74, 200, { align: 'center' });
+    doc.text('Thank you for choosing Salon of Guzellik!', 74, 125, { align: 'center' });
+    doc.text('This is a computer-generated delivery slip.', 74, 130, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
