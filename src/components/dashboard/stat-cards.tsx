@@ -121,14 +121,14 @@ export function StatCards() {
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.label} className={cn("border bg-card shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden", stat.borderColor)}>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold text-muted-foreground tracking-wider">{stat.label}</p>
-                <h3 className="text-xl font-black text-primary tracking-tight">{stat.value}</h3>
+          <CardContent className="p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-3 flex-1">
+                <p className="text-sm font-semibold text-muted-foreground leading-snug">{stat.label}</p>
+                <h3 className="text-3xl font-black text-primary tracking-tight">{stat.value}</h3>
               </div>
-              <div className={cn("p-2.5 rounded-xl transition-all group-hover:scale-110 flex items-center justify-center shrink-0", stat.bg, stat.color)}>
-                <stat.icon className="h-5 w-5" />
+              <div className={cn("p-4 rounded-2xl transition-all group-hover:scale-110 flex items-center justify-center shrink-0 shadow-sm", stat.bg, stat.color)}>
+                <stat.icon className="h-7 w-7" />
               </div>
             </div>
           </CardContent>
