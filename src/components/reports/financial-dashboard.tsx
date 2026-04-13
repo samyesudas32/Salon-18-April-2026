@@ -3,15 +3,14 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
-import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear, eachDayOfInterval, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer } from 'recharts';
+import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear } from 'date-fns';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, Download, FileText } from 'lucide-react';
 import { analyzeFinancialReports, type AnalyzeFinancialReportsOutput } from '@/ai/flows/analyze-financial-reports';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Helper to parse YYYY-MM-DD string as local date to avoid timezone issues.
 const parseDateString = (dateStr: string): Date => {
@@ -23,38 +22,6 @@ export function FinancialDashboard() {
   const { bookings, expenses: dailyExpenses, productExpenses, businessName } = useApp();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalyzeFinancialReportsOutput | null>(null);
-
-  const dailyReport = useMemo(() => {
-    const now = new Date();
-    const range = eachDayOfInterval({
-      start: startOfMonth(now),
-      end: endOfMonth(now),
-    });
-
-    return range.map(day => {
-      const dayStr = format(day, 'yyyy-MM-dd');
-
-      const dayBookings = bookings.filter(b => b.date === dayStr && b.status === 'completed');
-      const dayDailyExpenses = dailyExpenses.filter(e => e.date === dayStr);
-      const dayProductExpenses = productExpenses.filter(e => e.date === dayStr);
-
-      const revenue = dayBookings.reduce((s, b) => s + b.totalAmount, 0);
-      const bookingExpenses = dayBookings.reduce((s, b) => s + b.expenseAmount, 0);
-      const totalDailyExpenses = dayDailyExpenses.reduce((s, e) => s + e.amount, 0);
-      const totalProductExpenses = dayProductExpenses.reduce((s, e) => s + e.amount, 0);
-
-      const totalExpenses = bookingExpenses + totalDailyExpenses + totalProductExpenses;
-      
-      return {
-        period: format(day, 'dd MMM'),
-        fullDate: dayStr,
-        totalBookings: dayBookings.length,
-        totalRevenue: revenue,
-        totalExpenses: totalExpenses,
-        netProfit: revenue - totalExpenses,
-      };
-    });
-  }, [bookings, dailyExpenses, productExpenses]);
 
   const monthlyReport = useMemo(() => {
     const now = new Date();
@@ -156,18 +123,14 @@ export function FinancialDashboard() {
     }
   };
 
-  const downloadPDF = (type: 'daily' | 'monthly' | 'annual') => {
+  const downloadPDF = (type: 'monthly' | 'annual') => {
     const doc = new jsPDF();
-    const now = new Date();
     
     let title = '';
     let tableData = [];
     let headers = ['Period', 'Completed', 'Revenue', 'Expenses', 'Net Profit'];
 
-    if (type === 'daily') {
-      title = `Daily Financial Report (${format(now, 'MMMM yyyy')})`;
-      tableData = dailyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
-    } else if (type === 'monthly') {
+    if (type === 'monthly') {
       title = 'Monthly Financial Report (Last 6 Months)';
       tableData = monthlyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
     } else {
@@ -221,15 +184,6 @@ export function FinancialDashboard() {
             variant="outline" 
             size="sm" 
             className="gap-2 border-primary/20 hover:bg-primary/5 text-primary font-semibold"
-            onClick={() => downloadPDF('daily')}
-          >
-            <Calendar className="h-4 w-4" />
-            Daily PDF
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 border-primary/20 hover:bg-primary/5 text-primary font-semibold"
             onClick={() => downloadPDF('monthly')}
           >
             <TrendingUp className="h-4 w-4" />
@@ -247,223 +201,125 @@ export function FinancialDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="monthly" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6">
-          <TabsTrigger value="daily">Daily View</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly View</TabsTrigger>
-        </TabsList>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-none shadow-sm overflow-hidden">
+          <CardHeader className="bg-card/50 border-b border-border/40">
+            <CardTitle className="text-lg font-headline font-bold flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Monthly Revenue vs Profit
+            </CardTitle>
+            <CardDescription>Last 6 months performance</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[350px] p-6">
+            <ChartContainer config={chartConfig}>
+              <BarChart data={monthlyReport}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Legend />
+                <Bar dataKey="totalRevenue" fill="var(--color-totalRevenue)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netProfit" fill="var(--color-netProfit)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="daily" className="space-y-8">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-card/50 border-b border-border/40">
-                <CardTitle className="text-lg font-headline font-bold flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Daily Performance (Current Month)
-                </CardTitle>
-                <CardDescription>Day-by-day revenue vs profit trends</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[350px] p-6">
-                <ChartContainer config={chartConfig}>
-                  <BarChart data={dailyReport}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis 
-                      dataKey="period" 
-                      tick={{ fontSize: 10 }}
-                      interval={Math.floor(dailyReport.length / 10)}
-                    />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="totalRevenue" fill="var(--color-totalRevenue)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="netProfit" fill="var(--color-netProfit)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm flex flex-col">
-              <CardHeader className="bg-accent/5 border-b border-accent/10">
-                <CardTitle className="text-lg font-headline font-bold flex items-center gap-2 text-primary">
-                  <Sparkles className="h-5 w-5 text-accent" />
-                  Daily Insights
-                </CardTitle>
-                <CardDescription>Current month trends</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent mx-auto">
-                    <TrendingUp className="h-6 w-6" />
-                  </div>
-                  <h4 className="font-bold text-primary">Monthly Trajectory</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    View daily fluctuations to identify which days of the week perform best for your salon.
-                  </p>
-                  <Button variant="outline" className="w-full mt-4" onClick={handleAIAnalysis} disabled={isAnalyzing}>
-                    {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                    Get AI Trend Report
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-none shadow-sm overflow-hidden">
-            <CardHeader className="bg-card/50 border-b border-border/40">
-              <CardTitle className="text-lg font-headline font-bold">Daily Financial Summary</CardTitle>
-              <CardDescription>{format(new Date(), 'MMMM yyyy')}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/30 border-b">
-                      <th className="p-4 text-left font-bold text-primary">Date</th>
-                      <th className="p-4 text-center font-bold text-primary">Services</th>
-                      <th className="p-4 text-right font-bold text-primary">Revenue</th>
-                      <th className="p-4 text-right font-bold text-primary">Expenses</th>
-                      <th className="p-4 text-right font-bold text-primary">Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyReport.filter(r => r.totalBookings > 0 || r.totalExpenses > 0).map((row) => (
-                      <tr key={row.fullDate} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
-                        <td className="p-4 font-medium">{row.period}</td>
-                        <td className="p-4 text-center">{row.totalBookings}</td>
-                        <td className="p-4 text-right">Rs {row.totalRevenue.toLocaleString()}</td>
-                        <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
-                        <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="monthly" className="space-y-8">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-card/50 border-b border-border/40">
-                <CardTitle className="text-lg font-headline font-bold flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Monthly Revenue vs Profit
-                </CardTitle>
-                <CardDescription>Last 6 months performance</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[350px] p-6">
-                <ChartContainer config={chartConfig}>
-                  <BarChart data={monthlyReport}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="totalRevenue" fill="var(--color-totalRevenue)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="netProfit" fill="var(--color-netProfit)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-accent/5 border-b border-accent/10 flex flex-row items-center justify-between">
+        <Card className="border-none shadow-sm overflow-hidden">
+          <CardHeader className="bg-accent/5 border-b border-accent/10 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-headline font-bold flex items-center gap-2 text-primary">
+                <Sparkles className="h-5 w-5 text-accent" />
+                Smart AI Analysis
+              </CardTitle>
+              <CardDescription>Insights powered by Gemini</CardDescription>
+            </div>
+            <Button 
+              size="sm" 
+              onClick={handleAIAnalysis} 
+              disabled={isAnalyzing}
+              className="bg-accent text-accent-foreground hover:bg-accent/80 shadow-md"
+            >
+              {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+              Analyze
+            </Button>
+          </CardHeader>
+          <CardContent className="p-6">
+            {analysis ? (
+              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
                 <div>
-                  <CardTitle className="text-lg font-headline font-bold flex items-center gap-2 text-primary">
-                    <Sparkles className="h-5 w-5 text-accent" />
-                    Smart AI Analysis
-                  </CardTitle>
-                  <CardDescription>Insights powered by Gemini</CardDescription>
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Executive Summary</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{analysis.summary}</p>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={handleAIAnalysis} 
-                  disabled={isAnalyzing}
-                  className="bg-accent text-accent-foreground hover:bg-accent/80 shadow-md"
-                >
-                  {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                  Analyze
-                </Button>
-              </CardHeader>
-              <CardContent className="p-6">
-                {analysis ? (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
-                    <div>
-                      <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Executive Summary</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{analysis.summary}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="bg-muted/30 p-4 rounded-xl">
-                        <h4 className="text-[10px] font-black text-muted-foreground uppercase mb-2">Busiest Periods</h4>
-                        <ul className="text-xs space-y-1.5">
-                          {analysis.busiestPeriods.map((p, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <div className="h-1 w-1 rounded-full bg-primary" />
-                              {p}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-muted/30 p-4 rounded-xl">
-                        <h4 className="text-[10px] font-black text-muted-foreground uppercase mb-2">Profit Peaks</h4>
-                        <ul className="text-xs space-y-1.5">
-                          {analysis.highestProfitPeriods.map((p, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <div className="h-1 w-1 rounded-full bg-accent" />
-                              {p}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-muted/30 p-4 rounded-xl">
+                    <h4 className="text-[10px] font-black text-muted-foreground uppercase mb-2">Busiest Periods</h4>
+                    <ul className="text-xs space-y-1.5">
+                      {analysis.busiestPeriods.map((p, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <div className="h-1 w-1 rounded-full bg-primary" />
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[250px] text-muted-foreground">
-                    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                      <Sparkles className="h-8 w-8 opacity-20" />
-                    </div>
-                    <p className="text-sm font-medium">No analysis generated yet.</p>
-                    <p className="text-xs">Click the analyze button for professional insights.</p>
+                  <div className="bg-muted/30 p-4 rounded-xl">
+                    <h4 className="text-[10px] font-black text-muted-foreground uppercase mb-2">Profit Peaks</h4>
+                    <ul className="text-xs space-y-1.5">
+                      {analysis.highestProfitPeriods.map((p, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <div className="h-1 w-1 rounded-full bg-accent" />
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-none shadow-sm overflow-hidden">
-            <CardHeader className="bg-card/50 border-b border-border/40">
-              <CardTitle className="text-lg font-headline font-bold">Monthly Financial Table</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/30 border-b">
-                      <th className="p-4 text-left font-bold text-primary">Month</th>
-                      <th className="p-4 text-center font-bold text-primary">Completed</th>
-                      <th className="p-4 text-right font-bold text-primary">Revenue</th>
-                      <th className="p-4 text-right font-bold text-primary">Expenses</th>
-                      <th className="p-4 text-right font-bold text-primary">Net Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {monthlyReport.map((row) => (
-                      <tr key={row.period} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
-                        <td className="p-4 font-medium">{row.period}</td>
-                        <td className="p-4 text-center">{row.totalBookings}</td>
-                        <td className="p-4 text-right">Rs {row.totalRevenue.toLocaleString()}</td>
-                        <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
-                        <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[250px] text-muted-foreground">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <Sparkles className="h-8 w-8 opacity-20" />
+                </div>
+                <p className="text-sm font-medium">No analysis generated yet.</p>
+                <p className="text-xs">Click the analyze button for professional insights.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="bg-card/50 border-b border-border/40">
+          <CardTitle className="text-lg font-headline font-bold">Monthly Financial Table</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b">
+                  <th className="p-4 text-left font-bold text-primary">Month</th>
+                  <th className="p-4 text-center font-bold text-primary">Completed</th>
+                  <th className="p-4 text-right font-bold text-primary">Revenue</th>
+                  <th className="p-4 text-right font-bold text-primary">Expenses</th>
+                  <th className="p-4 text-right font-bold text-primary">Net Profit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyReport.map((row) => (
+                  <tr key={row.period} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
+                    <td className="p-4 font-medium">{row.period}</td>
+                    <td className="p-4 text-center">{row.totalBookings}</td>
+                    <td className="p-4 text-right">Rs {row.totalRevenue.toLocaleString()}</td>
+                    <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
+                    <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
