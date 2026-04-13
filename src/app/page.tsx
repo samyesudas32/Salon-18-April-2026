@@ -9,7 +9,7 @@ import { ServiceTab } from '@/components/clients/service-tab';
 import { FinancialDashboard } from '@/components/reports/financial-dashboard';
 import { DailyProfitOverview } from '@/components/dashboard/daily-profit-overview';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText, TrendingUp, History } from 'lucide-react';
+import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
@@ -73,10 +73,6 @@ export default function DashboardPage() {
               >
                 Show All Bookings
               </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1.5">
-                From Main Menu
-              </DropdownMenuLabel>
               <DropdownMenuCheckboxItem
                 checked={showServiceSection}
                 onCheckedChange={() => toggleDashboardSection('serviceSection')}
@@ -186,9 +182,14 @@ export default function DashboardPage() {
         {showRecentBookings && (
           <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
             <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
-              <div>
-                <CardTitle className="text-xl font-headline font-bold text-primary">All Bookings</CardTitle>
-                <CardDescription>The complete log of your service appointments</CardDescription>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                  <Briefcase className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-headline font-bold text-primary">All Bookings</CardTitle>
+                  <CardDescription>The complete log of your service appointments</CardDescription>
+                </div>
               </div>
               <Link href="/bookings" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
                 View All <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -209,8 +210,8 @@ export default function DashboardPage() {
                   <Wallet className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-headline font-bold text-primary">Recent Daily Expenses</CardTitle>
-                  <CardDescription>Summary of your latest operational costs</CardDescription>
+                  <CardTitle className="text-xl font-headline font-bold text-primary">Daily Expenses</CardTitle>
+                  <CardDescription>Latest operational and utility costs</CardDescription>
                 </div>
               </div>
               <Link href="/expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
@@ -233,7 +234,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl font-headline font-bold text-primary">Product Purchase Log</CardTitle>
-                  <CardDescription>Tracking your latest inventory and stock expenses</CardDescription>
+                  <CardDescription>Tracking inventory and stock acquisition costs</CardDescription>
                 </div>
               </div>
               <Link href="/product-expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
