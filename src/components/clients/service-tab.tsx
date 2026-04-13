@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone, Printer } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone, Printer, IndianRupee } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -21,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function ServiceTab() {
   const { serviceRecords, deleteServiceRecord } = useApp();
@@ -41,34 +43,78 @@ export function ServiceTab() {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [80, 150] // Receipt style format for 80mm printers
+      format: 'a5' // A5 is professional and common for service slips
     });
 
-    doc.setFontSize(14);
-    doc.text('SALON OF GUZELLIK', 40, 15, { align: 'center' });
+    // Header
+    doc.setFillColor(33, 53, 85); // Primary color
+    doc.rect(0, 0, 148, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SALON OF GUZELLIK', 74, 18, { align: 'center' });
+    
     doc.setFontSize(10);
-    doc.text('Service Delivery Slip', 40, 22, { align: 'center' });
-    
-    doc.setLineWidth(0.5);
-    doc.line(10, 25, 70, 25);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Professional Care & Beauty Services', 74, 25, { align: 'center' });
+    doc.text('Service Delivery Slip', 74, 32, { align: 'center' });
 
-    doc.setFontSize(9);
-    doc.text(`Client: ${record.clientName}`, 10, 35);
-    doc.text(`Phone: ${record.phoneNumber || 'N/A'}`, 10, 42);
-    doc.text(`Date: ${format(new Date(record.date), 'MMM dd, yyyy')}`, 10, 49);
-    doc.text(`Time: ${record.time}`, 10, 56);
+    // Client & Date Info
+    doc.setTextColor(33, 53, 85);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CLIENT DETAILS', 15, 50);
     
-    doc.line(10, 60, 70, 60);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Name: ${record.clientName}`, 15, 57);
+    doc.text(`Phone: ${record.phoneNumber || 'N/A'}`, 15, 64);
     
     doc.setFont('helvetica', 'bold');
-    doc.text(`Service: ${record.workType}`, 10, 68);
+    doc.text('APPOINTMENT', 90, 50);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Staff: ${record.staffName || 'Not Assigned'}`, 10, 75);
-    doc.text(`Duration: ${record.duration || 'N/A'}`, 10, 82);
+    doc.text(`Date: ${format(new Date(record.date), 'MMM dd, yyyy')}`, 90, 57);
+    doc.text(`Time: ${record.time}`, 90, 64);
 
-    doc.line(10, 90, 70, 90);
+    // Service Table
+    autoTable(doc, {
+      startY: 75,
+      head: [['SERVICE DESCRIPTION', 'STAFF', 'DURATION']],
+      body: [
+        [record.workType, record.staffName || '---', record.duration || '---']
+      ],
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: [33, 53, 85], textColor: [255, 255, 255] },
+    });
+
+    // Financial Section (The "Bill Section")
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(80, finalY, 133, finalY);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Total Amount:', 85, finalY + 8);
+    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 8, { align: 'right' });
+    
+    doc.text('Advance Paid:', 85, finalY + 15);
+    doc.text(`Rs ${record.advanceAmount?.toLocaleString() || '0'}`, 133, finalY + 15, { align: 'right' });
+    
+    doc.line(80, finalY + 18, 133, finalY + 18);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(200, 100, 0); // Orange color for balance
+    doc.text('BALANCE DUE:', 85, finalY + 25);
+    doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 25, { align: 'right' });
+
+    // Footer
+    doc.setTextColor(150, 150, 150);
     doc.setFontSize(8);
-    doc.text('Thank you for choosing our service!', 40, 100, { align: 'center' });
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for choosing Salon of Guzellik!', 74, 195, { align: 'center' });
+    doc.text('Please keep this slip for your records.', 74, 200, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
@@ -80,7 +126,7 @@ export function ServiceTab() {
           <div>
             <CardTitle>Service Section</CardTitle>
             <CardDescription>
-              Manage independent delivery records. Changes here do not affect the original booking.
+              Manage independent delivery records and billing. Changes here do not affect original bookings.
             </CardDescription>
           </div>
           <div className="relative w-full max-w-xs">
@@ -103,8 +149,8 @@ export function ServiceTab() {
                 <TableHead className="font-bold">Phone</TableHead>
                 <TableHead className="font-bold">Appt. Time</TableHead>
                 <TableHead className="font-bold">Service</TableHead>
-                <TableHead className="font-bold">Staff Name</TableHead>
-                <TableHead className="font-bold">Duration</TableHead>
+                <TableHead className="font-bold">Staff</TableHead>
+                <TableHead className="font-bold text-right">Balance</TableHead>
                 <TableHead className="font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -142,7 +188,7 @@ export function ServiceTab() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <span>{record.workType}</span>
+                        <span className="text-sm">{record.workType}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -151,11 +197,8 @@ export function ServiceTab() {
                         <span className="text-sm">{record.staffName || '---'}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Hourglass className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{record.duration || '---'}</span>
-                      </div>
+                    <TableCell className="text-right font-bold text-orange-600">
+                      Rs {record.balanceAmount?.toLocaleString() || '0'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">

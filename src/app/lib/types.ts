@@ -23,6 +23,9 @@ export interface ServiceRecord {
   workType: string;
   duration: string;
   staffName: string;
+  totalAmount: number;
+  advanceAmount: number;
+  balanceAmount: number;
 }
 
 export interface FinancialReport {

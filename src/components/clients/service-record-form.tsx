@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone } from 'lucide-react';
+import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone, IndianRupee, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/app/lib/store';
 import { ServiceRecord } from '@/app/lib/types';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   clientName: z.string().min(2, 'Name is required'),
@@ -35,6 +36,9 @@ const formSchema = z.object({
   time: z.string().min(1, 'Time is required'),
   duration: z.string().optional(),
   staffName: z.string().optional(),
+  totalAmount: z.coerce.number().min(0),
+  advanceAmount: z.coerce.number().min(0),
+  balanceAmount: z.coerce.number(),
 });
 
 interface ServiceRecordFormProps {
@@ -56,6 +60,9 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       time: record.time,
       duration: record.duration || '',
       staffName: record.staffName || '',
+      totalAmount: record.totalAmount || 0,
+      advanceAmount: record.advanceAmount || 0,
+      balanceAmount: record.balanceAmount || 0,
     },
   });
 
@@ -69,9 +76,18 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         time: record.time,
         duration: record.duration || '',
         staffName: record.staffName || '',
+        totalAmount: record.totalAmount || 0,
+        advanceAmount: record.advanceAmount || 0,
+        balanceAmount: record.balanceAmount || 0,
       });
     }
   }, [record, form, open]);
+
+  const handleCalculateBalance = () => {
+    const total = form.getValues('totalAmount');
+    const advance = form.getValues('advanceAmount');
+    form.setValue('balanceAmount', total - advance);
+  };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     updateServiceRecord(record.id, {
@@ -91,7 +107,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline font-bold text-primary flex items-center gap-2">
             Edit Service Delivery Record
@@ -215,6 +231,57 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                         <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input type="time" className="pl-9" {...field} />
                       </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Separator className="my-2" />
+            <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+              <IndianRupee className="h-4 w-4" />
+              Billing Details (Independent)
+            </h3>
+
+            <div className="grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="totalAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="advanceAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Advance</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="balanceAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">
+                      Balance
+                      <Calculator className="h-3 w-3 cursor-pointer text-primary" onClick={handleCalculateBalance} />
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="number" className="font-bold text-orange-600" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

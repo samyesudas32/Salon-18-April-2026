@@ -124,6 +124,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       workType: booking.workType,
       duration: '',
       staffName: '',
+      totalAmount: booking.totalAmount,
+      advanceAmount: booking.advanceAmount,
+      balanceAmount: booking.balanceAmount,
     });
     
     toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
