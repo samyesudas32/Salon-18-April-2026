@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, SortAsc, Search } from 'lucide-react';
+import { SortAsc, Search } from 'lucide-react';
 
 const MONTHS = [
   { value: 'all', label: 'All Months' },
@@ -44,7 +44,7 @@ export default function AllBookingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-card p-4 rounded-xl border border-border/40 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-card p-4 rounded-xl border border-border/40 shadow-sm">
         <div className="space-y-2">
           <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2">
             <Search className="h-3 w-3" />
@@ -83,13 +83,6 @@ export default function AllBookingsPage() {
               <SelectItem value="upcoming-first">Upcoming First</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="sm:hidden lg:flex flex-col justify-end hidden">
-           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-lg border border-dashed">
-             <Filter className="h-3.5 w-3.5" />
-             <span>Refining your view based on selected filters.</span>
-           </div>
         </div>
       </div>
 
