@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Clock, CheckCircle2, type LucideIcon, TrendingUp, CalendarDays, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, type LucideIcon, TrendingUp, CalendarDays, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { useMemo, useState, useEffect } from 'react';
@@ -32,7 +32,6 @@ export function StatCards() {
         { label: 'Upcoming', value: '...', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50', borderColor: 'border-blue-100' },
         { label: 'Total Revenue', value: '...', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50', borderColor: 'border-green-100' },
         { label: 'Due Balance', value: '...', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', borderColor: 'border-orange-100' },
-        { label: 'Total Delivered', value: '...', icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50', borderColor: 'border-indigo-100' },
       ];
     }
 
@@ -42,7 +41,6 @@ export function StatCards() {
     const upcoming = bookings.filter(b => b.status === 'upcoming' || (b.status === 'pending' && new Date(b.date) >= now)).length;
     const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
     const pendingBalance = bookings.reduce((sum, b) => sum + b.balanceAmount, 0);
-    const totalCompletedCount = bookings.filter(b => b.status === 'completed').length;
 
     return [
       {
@@ -85,19 +83,11 @@ export function StatCards() {
         bg: 'bg-orange-50/50',
         borderColor: 'border-orange-100/50',
       },
-      {
-        label: 'Total Services Delivered',
-        value: totalCompletedCount,
-        icon: CheckCircle2,
-        color: 'text-indigo-600',
-        bg: 'bg-indigo-50/50',
-        borderColor: 'border-indigo-100/50',
-      },
     ];
   }, [bookings, now]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {stats.map((stat) => (
         <Card key={stat.label} className={cn("border bg-card shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden", stat.borderColor)}>
           <CardContent className="p-6">
