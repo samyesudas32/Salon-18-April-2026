@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, UserCheck, Hourglass, Phone, Printer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import jsPDF from 'jspdf';
 
 export function ServiceTab() {
   const { serviceRecords, deleteServiceRecord } = useApp();
@@ -36,6 +37,42 @@ export function ServiceTab() {
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [serviceRecords, searchTerm]);
+
+  const handlePrint = (record: any) => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 150] // Receipt style format
+    });
+
+    doc.setFontSize(14);
+    doc.text('SALON OF GUZELLIK', 40, 15, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('Service Delivery Slip', 40, 22, { align: 'center' });
+    
+    doc.setLineWidth(0.5);
+    doc.line(10, 25, 70, 25);
+
+    doc.setFontSize(9);
+    doc.text(`Client: ${record.clientName}`, 10, 35);
+    doc.text(`Phone: ${record.phoneNumber || 'N/A'}`, 10, 42);
+    doc.text(`Date: ${format(new Date(record.date), 'MMM dd, yyyy')}`, 10, 49);
+    doc.text(`Time: ${record.time}`, 10, 56);
+    
+    doc.line(10, 60, 70, 60);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Service: ${record.workType}`, 10, 68);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Staff: ${record.staffName || 'Not Assigned'}`, 10, 75);
+    doc.text(`Duration: ${record.duration || 'N/A'}`, 10, 82);
+
+    doc.line(10, 90, 70, 90);
+    doc.setFontSize(8);
+    doc.text('Thank you for choosing our service!', 40, 100, { align: 'center' });
+
+    doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
+  };
 
   return (
     <Card className="border-none shadow-sm">
@@ -123,25 +160,35 @@ export function ServiceTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          onClick={() => handlePrint(record)}
+                          title="Print Slip"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+
                         <ServiceRecordForm record={record} />
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Cancel Record">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Independent Record?</AlertDialogTitle>
+                              <AlertDialogTitle>Cancel Independent Record?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will remove the service record for {record.clientName} from this tab only. The original booking remains intact.
+                                This will remove the service record for {record.clientName} from this section. The original booking remains intact.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Keep Record</AlertDialogCancel>
                               <AlertDialogAction onClick={() => deleteServiceRecord(record.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Delete Record
+                                Cancel Record
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
