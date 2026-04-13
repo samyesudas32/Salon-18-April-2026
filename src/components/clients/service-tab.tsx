@@ -137,13 +137,30 @@ export function ServiceTab() {
 
     doc.line(startX, finalY + 12, 133, finalY + 12); // Bottom emphasis line
 
-    // 5. Footer
-    doc.setTextColor(160, 160, 160);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for visiting Salon of Guzellik!', 74, 185, { align: 'center' });
+    // 5. Footer with Address and Phone
+    const footerY = 178;
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(7.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, 190, { align: 'center' });
+    
+    const addressLine1 = "West of Iron Bridge, CCSB Rd, near Merino Fabrics,";
+    const addressLine2 = "Kodiveedu, Alappuzha, Kerala 688001";
+    const phoneLine = "Ph: 7025 80 1010, 755 88 74175";
+    
+    doc.text(addressLine1, 74, footerY, { align: 'center' });
+    doc.text(addressLine2, 74, footerY + 3.5, { align: 'center' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text(phoneLine, 74, footerY + 8, { align: 'center' });
+
+    doc.setTextColor(160, 160, 160);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for visiting Salon of Guzellik!', 74, footerY + 16, { align: 'center' });
+    
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, footerY + 21, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
