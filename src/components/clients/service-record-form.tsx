@@ -42,7 +42,7 @@ const formSchema = z.object({
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
   durationValue: z.string().optional(),
-  durationUnit: z.string().default('minutes'),
+  durationUnit: z.string().default('Minutes'),
   staffName: z.string().optional(),
   totalAmount: z.coerce.number().min(0),
   advanceAmount: z.coerce.number().min(0),
@@ -67,7 +67,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       date: record.date,
       time: record.time,
       durationValue: record.duration?.split(' ')[0] || '',
-      durationUnit: record.duration?.split(' ')[1] || 'minutes',
+      durationUnit: record.duration?.split(' ')[1] || 'Minutes',
       staffName: record.staffName || '',
       totalAmount: record.totalAmount || 0,
       advanceAmount: record.advanceAmount || 0,
@@ -85,7 +85,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         date: record.date,
         time: record.time,
         durationValue: parts[0] || '',
-        durationUnit: parts[1] || 'minutes',
+        durationUnit: parts[1] || 'Minutes',
         staffName: record.staffName || '',
         totalAmount: record.totalAmount || 0,
         advanceAmount: record.advanceAmount || 0,
@@ -139,7 +139,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                 <User className="h-3.5 w-3.5" />
                 Client & Appointment
               </h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormField
                   control={form.control}
                   name="clientName"
@@ -215,8 +215,8 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                 <Briefcase className="h-3.5 w-3.5" />
                 Delivery Details
               </h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                <div className="md:col-span-2">
                   <FormField
                     control={form.control}
                     name="workType"
@@ -234,6 +234,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                     )}
                   />
                 </div>
+                
                 <FormField
                   control={form.control}
                   name="staffName"
@@ -251,9 +252,9 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   )}
                 />
                 
-                <div className="flex flex-col space-y-2 max-w-[200px]">
+                <div className="space-y-2">
                   <FormLabel>Duration</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-start">
                     <FormField
                       control={form.control}
                       name="durationValue"
@@ -273,7 +274,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                       control={form.control}
                       name="durationUnit"
                       render={({ field }) => (
-                        <FormItem className="w-[105px]">
+                        <FormItem className="w-[120px]">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-10">
@@ -281,8 +282,8 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="minutes">Minutes</SelectItem>
-                              <SelectItem value="hrs">Hrs</SelectItem>
+                              <SelectItem value="Minutes">Minutes</SelectItem>
+                              <SelectItem value="Hrs">Hrs</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -303,7 +304,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                 Financial Summary (Slip Details)
               </h3>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="totalAmount"
