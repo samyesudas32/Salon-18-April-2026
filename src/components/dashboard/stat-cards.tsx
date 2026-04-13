@@ -29,7 +29,7 @@ export function StatCards() {
       return [
         { label: "Today's Appointments", value: '...', icon: CalendarDays, color: 'text-purple-600', bg: 'bg-purple-50', borderColor: 'border-purple-100' },
         { label: "Today's Completed", value: '...', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-        { label: "Month's Upcoming", value: '...', icon: CalendarClock, color: 'text-blue-600', bg: 'bg-blue-50', borderColor: 'border-blue-100' },
+        { label: "Upcoming Booking", value: '...', icon: CalendarClock, color: 'text-blue-600', bg: 'bg-blue-50', borderColor: 'border-blue-100' },
       ];
     }
 
@@ -66,7 +66,7 @@ export function StatCards() {
         borderColor: 'border-emerald-100/50',
       },
       {
-        label: "Month's Upcoming",
+        label: "Upcoming Booking",
         value: thisMonthUpcomingCount,
         icon: CalendarClock,
         color: 'text-blue-600',
