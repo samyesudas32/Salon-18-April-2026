@@ -12,9 +12,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
-import { format } from 'date-fns';
+import { format, parseISO, getMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Pencil, Trash2, Phone, Clock, AlignLeft } from 'lucide-react';
+import { Pencil, Trash2, Phone, Clock, AlignLeft, CalendarOff } from 'lucide-react';
 import { BookingForm } from './booking-form';
 import {
   AlertDialog,
@@ -30,30 +30,57 @@ import {
 
 interface BookingTableProps {
   filterStatus?: 'upcoming' | 'completed' | 'all';
+  monthFilter?: string; // "0" to "11" (Date.getMonth() index) or "all"
+  sortOrder?: 'newest' | 'oldest' | 'completed-first' | 'upcoming-first';
 }
 
-export function BookingTable({ filterStatus = 'all' }: BookingTableProps) {
+export function BookingTable({ 
+  filterStatus = 'all', 
+  monthFilter = 'all',
+  sortOrder = 'newest'
+}: BookingTableProps) {
   const { bookings, deleteBooking } = useApp();
 
   const sortedBookings = useMemo(() => {
-    const filtered = bookings.filter((booking) => {
+    // 1. Initial status filtering (Upcoming/Completed/All)
+    let filtered = bookings.filter((booking) => {
       if (filterStatus === 'all') return true;
       if (filterStatus === 'upcoming') return booking.status === 'upcoming' || booking.status === 'pending';
       return booking.status === filterStatus;
     });
 
+    // 2. Month filtering
+    if (monthFilter !== 'all') {
+      const monthIndex = parseInt(monthFilter);
+      filtered = filtered.filter((booking) => {
+        const date = parseISO(booking.date);
+        return getMonth(date) === monthIndex;
+      });
+    }
+
+    // 3. Sorting
     return filtered.sort((a, b) => {
-      const timeA = a.time || '00:00';
-      const timeB = b.time || '00:00';
-      const dateTimeA = new Date(`${a.date}T${timeA}`).getTime() || 0;
-      const dateTimeB = new Date(`${b.date}T${timeB}`).getTime() || 0;
-      
-      if (filterStatus === 'completed') {
-        return dateTimeB - dateTimeA;
+      const dateTimeA = new Date(`${a.date}T${a.time || '00:00'}`).getTime() || 0;
+      const dateTimeB = new Date(`${b.date}T${b.time || '00:00'}`).getTime() || 0;
+
+      if (sortOrder === 'completed-first') {
+        if (a.status === 'completed' && b.status !== 'completed') return -1;
+        if (a.status !== 'completed' && b.status === 'completed') return 1;
       }
-      return dateTimeA - dateTimeB;
+
+      if (sortOrder === 'upcoming-first') {
+        if (a.status === 'upcoming' && b.status !== 'upcoming') return -1;
+        if (a.status !== 'upcoming' && b.status === 'upcoming') return 1;
+      }
+
+      if (sortOrder === 'oldest') {
+        return dateTimeA - dateTimeB;
+      }
+
+      // Default: Newest first
+      return dateTimeB - dateTimeA;
     });
-  }, [bookings, filterStatus]);
+  }, [bookings, filterStatus, monthFilter, sortOrder]);
 
   return (
     <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm">
@@ -73,10 +100,15 @@ export function BookingTable({ filterStatus = 'all' }: BookingTableProps) {
         <TableBody>
           {sortedBookings.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <Clock className="h-8 w-8 opacity-20" />
-                  <p>No {filterStatus !== 'all' ? filterStatus : ''} bookings found.</p>
+              <TableCell colSpan={8} className="h-48 text-center text-muted-foreground">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                    <CalendarOff className="h-6 w-6 opacity-40" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-primary">No results found</p>
+                    <p className="text-sm">Try adjusting your month or status filters.</p>
+                  </div>
                 </div>
               </TableCell>
             </TableRow>
@@ -95,7 +127,7 @@ export function BookingTable({ filterStatus = 'all' }: BookingTableProps) {
                 <TableCell className="font-medium">{booking.workType}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{format(new Date(booking.date), 'MMM dd, yyyy')}</span>
+                    <span className="text-sm font-medium">{format(parseISO(booking.date), 'MMM dd, yyyy')}</span>
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {booking.time || 'N/A'}
