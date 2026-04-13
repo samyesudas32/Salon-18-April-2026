@@ -54,11 +54,11 @@ export function SidebarNav() {
   return (
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
+        <div className="flex items-start gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0">
             {businessShortName}
           </div>
-          <span className="font-headline font-bold text-xl tracking-tight text-primary truncate max-w-[160px]">
+          <span className="font-headline font-bold text-xl tracking-tight text-primary break-words leading-tight">
             {businessName}
           </span>
         </div>
@@ -85,7 +85,7 @@ export function SidebarNav() {
       <SidebarFooter className="p-4 border-t border-border/50">
         <SidebarMenu>
           <div className="px-2 py-4 mb-2 bg-muted/30 rounded-lg border border-border/50 flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <Shield className="h-4 w-4" />
             </div>
             <div className="flex flex-col overflow-hidden">
