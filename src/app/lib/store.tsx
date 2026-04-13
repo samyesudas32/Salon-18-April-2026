@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-export type DashboardSection = 'stats' | 'bookings' | 'upcoming' | 'expenses' | 'productExpenses';
+export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses';
 
 interface AppContextType {
   bookings: Booking[];
@@ -37,7 +36,7 @@ interface AppContextType {
   // Dashboard Config
   showStats: boolean;
   showRecentBookings: boolean;
-  showUpcoming: boolean;
+  showServiceSection: boolean;
   showExpenses: boolean;
   showProductExpenses: boolean;
   toggleDashboardSection: (section: DashboardSection) => void;
@@ -72,7 +71,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Dashboard Visibility State
   const [showStats, setShowStats] = useState<boolean>(true);
   const [showRecentBookings, setShowRecentBookings] = useState<boolean>(true);
-  const [showUpcoming, setShowUpcoming] = useState<boolean>(false);
+  const [showServiceSection, setShowServiceSection] = useState<boolean>(false);
   const [showExpenses, setShowExpenses] = useState<boolean>(false);
   const [showProductExpenses, setShowProductExpenses] = useState<boolean>(false);
 
@@ -90,7 +89,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
-      const storedShowUpcoming = localStorage.getItem('showUpcoming');
+      const storedShowServiceSection = localStorage.getItem('showServiceSection');
       const storedShowExpenses = localStorage.getItem('showExpenses');
       const storedShowProductExpenses = localStorage.getItem('showProductExpenses');
       
@@ -102,7 +101,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
-      if (storedShowUpcoming !== null) setShowUpcoming(storedShowUpcoming === 'true');
+      if (storedShowServiceSection !== null) setShowServiceSection(storedShowServiceSection === 'true');
       if (storedShowExpenses !== null) setShowExpenses(storedShowExpenses === 'true');
       if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
 
@@ -130,14 +129,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         
         localStorage.setItem('showStats', String(showStats));
         localStorage.setItem('showRecentBookings', String(showRecentBookings));
-        localStorage.setItem('showUpcoming', String(showUpcoming));
+        localStorage.setItem('showServiceSection', String(showServiceSection));
         localStorage.setItem('showExpenses', String(showExpenses));
         localStorage.setItem('showProductExpenses', String(showProductExpenses));
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showUpcoming, showExpenses, showProductExpenses, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -175,7 +174,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     switch(section) {
       case 'stats': setShowStats(!showStats); newState = !showStats; break;
       case 'bookings': setShowRecentBookings(!showRecentBookings); newState = !showRecentBookings; break;
-      case 'upcoming': setShowUpcoming(!showUpcoming); newState = !showUpcoming; break;
+      case 'serviceSection': setShowServiceSection(!showServiceSection); newState = !showServiceSection; break;
       case 'expenses': setShowExpenses(!showExpenses); newState = !showExpenses; break;
       case 'productExpenses': setShowProductExpenses(!showProductExpenses); newState = !showProductExpenses; break;
     }
@@ -292,7 +291,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
       businessName, businessShortName, adminName, updateBusinessIdentity,
-      showStats, showRecentBookings, showUpcoming, showExpenses, showProductExpenses, toggleDashboardSection,
+      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
