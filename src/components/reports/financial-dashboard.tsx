@@ -5,13 +5,14 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar, ListFilter } from 'lucide-react';
 import { analyzeFinancialReports, type AnalyzeFinancialReportsOutput } from '@/ai/flows/analyze-financial-reports';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import jsPDF from 'jspdf';
+import jsPDF from 'jsPDF';
 import autoTable from 'jspdf-autotable';
+import { cn } from '@/lib/utils';
 
 // Helper to parse YYYY-MM-DD string as local date to avoid timezone issues.
 const parseDateString = (dateStr: string): Date => {
@@ -23,6 +24,7 @@ export function FinancialDashboard() {
   const { bookings, expenses: dailyExpenses, productExpenses, businessName } = useApp();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalyzeFinancialReportsOutput | null>(null);
+  const [tableTab, setTableTab] = useState<'daily' | 'monthly'>('monthly');
 
   const dailyReport = useMemo(() => {
     const now = new Date();
@@ -164,7 +166,12 @@ export function FinancialDashboard() {
 
     if (type === 'daily') {
       title = `Daily Financial Report (${format(new Date(), 'MMMM yyyy')})`;
-      tableData = dailyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
+      headers = ['Date', 'Expenses', 'Net Profit'];
+      tableData = dailyReport.map(r => [
+        r.period, 
+        `Rs ${r.totalExpenses.toLocaleString()}`, 
+        `Rs ${r.netProfit.toLocaleString()}`
+      ]);
     } else if (type === 'monthly') {
       title = 'Monthly Financial Report (Last 6 Months)';
       tableData = monthlyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
@@ -334,36 +341,79 @@ export function FinancialDashboard() {
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden">
-        <CardHeader className="bg-card/50 border-b border-border/40">
-          <CardTitle className="text-lg font-headline font-bold">Monthly Financial Table</CardTitle>
+        <CardHeader className="bg-card/50 border-b border-border/40 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-headline font-bold">Financial Statements</CardTitle>
+            <CardDescription>Review {tableTab === 'daily' ? 'day-by-day results' : 'monthly summaries'}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+            <Button 
+              variant={tableTab === 'monthly' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="h-8 text-xs px-4"
+              onClick={() => setTableTab('monthly')}
+            >
+              Monthly
+            </Button>
+            <Button 
+              variant={tableTab === 'daily' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="h-8 text-xs px-4"
+              onClick={() => setTableTab('daily')}
+            >
+              Daily
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/30 border-b">
-                  <th className="p-4 text-left font-bold text-primary">Month</th>
-                  <th className="p-4 text-center font-bold text-primary">Completed</th>
-                  <th className="p-4 text-right font-bold text-primary">Revenue</th>
-                  <th className="p-4 text-right font-bold text-primary">Expenses</th>
-                  <th className="p-4 text-right font-bold text-primary">Net Profit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlyReport.map((row) => (
-                  <tr key={row.period} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
-                    <td className="p-4 font-medium">{row.period}</td>
-                    <td className="p-4 text-center">{row.totalBookings}</td>
-                    <td className="p-4 text-right">Rs {row.totalRevenue.toLocaleString()}</td>
-                    <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
-                    <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
+            {tableTab === 'monthly' ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 border-b">
+                    <th className="p-4 text-left font-bold text-primary">Month</th>
+                    <th className="p-4 text-center font-bold text-primary">Completed</th>
+                    <th className="p-4 text-right font-bold text-primary">Revenue</th>
+                    <th className="p-4 text-right font-bold text-primary">Expenses</th>
+                    <th className="p-4 text-right font-bold text-primary">Net Profit</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {monthlyReport.map((row) => (
+                    <tr key={row.period} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
+                      <td className="p-4 font-medium">{row.period}</td>
+                      <td className="p-4 text-center">{row.totalBookings}</td>
+                      <td className="p-4 text-right">Rs {row.totalRevenue.toLocaleString()}</td>
+                      <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
+                      <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 border-b">
+                    <th className="p-4 text-left font-bold text-primary">Date</th>
+                    <th className="p-4 text-right font-bold text-primary">Expenses</th>
+                    <th className="p-4 text-right font-bold text-primary">Net Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyReport.map((row) => (
+                    <tr key={row.period} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
+                      <td className="p-4 font-medium">{row.period}</td>
+                      <td className="p-4 text-right text-destructive">Rs {row.totalExpenses.toLocaleString()}</td>
+                      <td className="p-4 text-right font-bold text-primary">Rs {row.netProfit.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
