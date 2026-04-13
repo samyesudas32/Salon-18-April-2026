@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses';
+export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports';
 
 interface AppContextType {
   bookings: Booking[];
@@ -39,6 +39,7 @@ interface AppContextType {
   showServiceSection: boolean;
   showExpenses: boolean;
   showProductExpenses: boolean;
+  showReports: boolean;
   toggleDashboardSection: (section: DashboardSection) => void;
   // Auth state
   isLoggedIn: boolean;
@@ -74,6 +75,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [showServiceSection, setShowServiceSection] = useState<boolean>(false);
   const [showExpenses, setShowExpenses] = useState<boolean>(false);
   const [showProductExpenses, setShowProductExpenses] = useState<boolean>(false);
+  const [showReports, setShowReports] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -92,6 +94,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedShowServiceSection = localStorage.getItem('showServiceSection');
       const storedShowExpenses = localStorage.getItem('showExpenses');
       const storedShowProductExpenses = localStorage.getItem('showProductExpenses');
+      const storedShowReports = localStorage.getItem('showReports');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
@@ -104,6 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedShowServiceSection !== null) setShowServiceSection(storedShowServiceSection === 'true');
       if (storedShowExpenses !== null) setShowExpenses(storedShowExpenses === 'true');
       if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
+      if (storedShowReports !== null) setShowReports(storedShowReports === 'true');
 
       if (storedBookings) setBookings(JSON.parse(storedBookings));
       if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
@@ -132,11 +136,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('showServiceSection', String(showServiceSection));
         localStorage.setItem('showExpenses', String(showExpenses));
         localStorage.setItem('showProductExpenses', String(showProductExpenses));
+        localStorage.setItem('showReports', String(showReports));
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -177,6 +182,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       case 'serviceSection': setShowServiceSection(!showServiceSection); newState = !showServiceSection; break;
       case 'expenses': setShowExpenses(!showExpenses); newState = !showExpenses; break;
       case 'productExpenses': setShowProductExpenses(!showProductExpenses); newState = !showProductExpenses; break;
+      case 'reports': setShowReports(!showReports); newState = !showReports; break;
     }
     
     const sectionName = section.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -291,7 +297,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
       businessName, businessShortName, adminName, updateBusinessIdentity,
-      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, toggleDashboardSection,
+      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}

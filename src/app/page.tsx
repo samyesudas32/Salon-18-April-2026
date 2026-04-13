@@ -6,8 +6,9 @@ import { BookingTable } from '@/components/bookings/booking-table';
 import { ExpenseTable } from '@/components/expenses/expense-table';
 import { ProductExpenseTable } from '@/components/product-expenses/product-expense-table';
 import { ServiceTab } from '@/components/clients/service-tab';
+import { FinancialDashboard } from '@/components/reports/financial-dashboard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
@@ -26,7 +27,8 @@ export default function DashboardPage() {
     showRecentBookings, 
     showServiceSection, 
     showExpenses, 
-    showProductExpenses, 
+    showProductExpenses,
+    showReports,
     toggleDashboardSection 
   } = useApp();
 
@@ -85,6 +87,12 @@ export default function DashboardPage() {
               >
                 Product Expenses
               </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={showReports}
+                onCheckedChange={() => toggleDashboardSection('reports')}
+              >
+                Financial Reports
+              </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -124,6 +132,27 @@ export default function DashboardPage() {
               </Link>
             </div>
             <ServiceTab />
+          </div>
+        )}
+
+        {/* Financial Reports Section */}
+        {showReports && (
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-headline font-bold text-primary">Financial Reports</h2>
+                  <p className="text-sm text-muted-foreground">Business performance and AI insights</p>
+                </div>
+              </div>
+              <Link href="/reports" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
+                Full Report Center <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </div>
+            <FinancialDashboard />
           </div>
         )}
 
@@ -192,7 +221,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && (
+      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed border-border/60 animate-in fade-in zoom-in duration-500">
           <Layout className="h-12 w-12 opacity-20 mb-4" />
           <p className="text-lg font-medium">Dashboard is empty</p>
