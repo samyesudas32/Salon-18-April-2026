@@ -4,15 +4,16 @@
 import { StatCards } from '@/components/dashboard/stat-cards';
 import { BookingForm } from '@/components/bookings/booking-form';
 import { BookingTable } from '@/components/bookings/booking-table';
+import { ExpenseTable } from '@/components/expenses/expense-table';
+import { ProductExpenseTable } from '@/components/product-expenses/product-expense-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ArrowUpRight, Plus, Settings2, Layout } from 'lucide-react';
+import { ArrowUpRight, Plus, Settings2, Layout, Calendar, Wallet, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -20,7 +21,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function DashboardPage() {
-  const { showStats, showRecentBookings, toggleDashboardSection } = useApp();
+  const { 
+    showStats, 
+    showRecentBookings, 
+    showUpcoming, 
+    showExpenses, 
+    showProductExpenses, 
+    toggleDashboardSection 
+  } = useApp();
 
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-12">
@@ -37,7 +45,7 @@ export default function DashboardPage() {
                 Customize
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel className="flex items-center gap-2">
                 <Layout className="h-4 w-4" />
                 Display Options
@@ -53,7 +61,29 @@ export default function DashboardPage() {
                 checked={showRecentBookings}
                 onCheckedChange={() => toggleDashboardSection('bookings')}
               >
-                Recent Bookings
+                All Recent Bookings
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1.5">
+                From Main Menu
+              </DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                checked={showUpcoming}
+                onCheckedChange={() => toggleDashboardSection('upcoming')}
+              >
+                Upcoming Appointments
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={showExpenses}
+                onCheckedChange={() => toggleDashboardSection('expenses')}
+              >
+                Daily Expenses
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={showProductExpenses}
+                onCheckedChange={() => toggleDashboardSection('productExpenses')}
+              >
+                Product Expenses
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -74,25 +104,97 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Main Content: Recent Activity */}
-      {showRecentBookings && (
-        <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
-          <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
-            <div>
-              <CardTitle className="text-xl font-headline font-bold text-primary">Recent Bookings</CardTitle>
-              <CardDescription>The latest appointments scheduled in your system</CardDescription>
-            </div>
-            <Link href="/bookings" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
-              View All <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <BookingTable />
-          </CardContent>
-        </Card>
-      )}
+      {/* Conditional Dashboard Sections */}
+      <div className="space-y-8">
+        {/* Upcoming Appointments Section */}
+        {showUpcoming && (
+          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-headline font-bold text-primary">Upcoming Appointments</CardTitle>
+                  <CardDescription>View your next scheduled service visits</CardDescription>
+                </div>
+              </div>
+              <Link href="/bookings/upcoming" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
+                Full Schedule <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+              <BookingTable filterStatus="upcoming" />
+            </CardContent>
+          </Card>
+        )}
 
-      {!showStats && !showRecentBookings && (
+        {/* Recent Bookings Section */}
+        {showRecentBookings && (
+          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
+              <div>
+                <CardTitle className="text-xl font-headline font-bold text-primary">Recent Bookings</CardTitle>
+                <CardDescription>The latest entries in your booking history</CardDescription>
+              </div>
+              <Link href="/bookings" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
+                View All <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+              <BookingTable />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Daily Expenses Section */}
+        {showExpenses && (
+          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-headline font-bold text-primary">Recent Daily Expenses</CardTitle>
+                  <CardDescription>Summary of your latest operational costs</CardDescription>
+                </div>
+              </div>
+              <Link href="/expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
+                Manage Expenses <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ExpenseTable />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Product Expenses Section */}
+        {showProductExpenses && (
+          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <ShoppingBag className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-headline font-bold text-primary">Product Purchase Log</CardTitle>
+                  <CardDescription>Tracking your latest inventory and stock expenses</CardDescription>
+                </div>
+              </div>
+              <Link href="/product-expenses" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
+                Full Log <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ProductExpenseTable />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {!showStats && !showRecentBookings && !showUpcoming && !showExpenses && !showProductExpenses && (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed border-border/60 animate-in fade-in zoom-in duration-500">
           <Layout className="h-12 w-12 opacity-20 mb-4" />
           <p className="text-lg font-medium">Dashboard is empty</p>

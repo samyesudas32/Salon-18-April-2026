@@ -7,6 +7,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+export type DashboardSection = 'stats' | 'bookings' | 'upcoming' | 'expenses' | 'productExpenses';
+
 interface AppContextType {
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id'>) => void;
@@ -35,7 +37,10 @@ interface AppContextType {
   // Dashboard Config
   showStats: boolean;
   showRecentBookings: boolean;
-  toggleDashboardSection: (section: 'stats' | 'bookings') => void;
+  showUpcoming: boolean;
+  showExpenses: boolean;
+  showProductExpenses: boolean;
+  toggleDashboardSection: (section: DashboardSection) => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -67,6 +72,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Dashboard Visibility State
   const [showStats, setShowStats] = useState<boolean>(true);
   const [showRecentBookings, setShowRecentBookings] = useState<boolean>(true);
+  const [showUpcoming, setShowUpcoming] = useState<boolean>(false);
+  const [showExpenses, setShowExpenses] = useState<boolean>(false);
+  const [showProductExpenses, setShowProductExpenses] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -79,16 +87,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessName = localStorage.getItem('businessName');
       const storedBusinessShortName = localStorage.getItem('businessShortName');
       const storedAdminName = localStorage.getItem('adminName');
+      
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
+      const storedShowUpcoming = localStorage.getItem('showUpcoming');
+      const storedShowExpenses = localStorage.getItem('showExpenses');
+      const storedShowProductExpenses = localStorage.getItem('showProductExpenses');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
       if (storedBusinessName) setBusinessName(storedBusinessName);
       if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
       if (storedAdminName) setAdminName(storedAdminName);
+      
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
+      if (storedShowUpcoming !== null) setShowUpcoming(storedShowUpcoming === 'true');
+      if (storedShowExpenses !== null) setShowExpenses(storedShowExpenses === 'true');
+      if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
 
       if (storedBookings) setBookings(JSON.parse(storedBookings));
       if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
@@ -111,13 +127,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessName', businessName);
         localStorage.setItem('businessShortName', businessShortName);
         localStorage.setItem('adminName', adminName);
+        
         localStorage.setItem('showStats', String(showStats));
         localStorage.setItem('showRecentBookings', String(showRecentBookings));
+        localStorage.setItem('showUpcoming', String(showUpcoming));
+        localStorage.setItem('showExpenses', String(showExpenses));
+        localStorage.setItem('showProductExpenses', String(showProductExpenses));
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showUpcoming, showExpenses, showProductExpenses, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -150,10 +170,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Identity Updated", description: "Business branding and administrator details have been saved." });
   };
 
-  const toggleDashboardSection = (section: 'stats' | 'bookings') => {
-    if (section === 'stats') setShowStats(!showStats);
-    if (section === 'bookings') setShowRecentBookings(!showRecentBookings);
-    toast({ title: "Dashboard Updated", description: `${section.charAt(0).toUpperCase() + section.slice(1)} section ${section === 'stats' ? (!showStats ? 'added' : 'removed') : (!showRecentBookings ? 'added' : 'removed')}.` });
+  const toggleDashboardSection = (section: DashboardSection) => {
+    let newState = false;
+    switch(section) {
+      case 'stats': setShowStats(!showStats); newState = !showStats; break;
+      case 'bookings': setShowRecentBookings(!showRecentBookings); newState = !showRecentBookings; break;
+      case 'upcoming': setShowUpcoming(!showUpcoming); newState = !showUpcoming; break;
+      case 'expenses': setShowExpenses(!showExpenses); newState = !showExpenses; break;
+      case 'productExpenses': setShowProductExpenses(!showProductExpenses); newState = !showProductExpenses; break;
+    }
+    
+    const sectionName = section.replace(/([A-Z])/g, ' $1').toLowerCase();
+    toast({ 
+      title: "Dashboard Updated", 
+      description: `${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)} section ${newState ? 'added' : 'removed'}.` 
+    });
   };
 
   const addBooking = (newBooking: Omit<Booking, 'id'>) => {
@@ -261,7 +292,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
       businessName, businessShortName, adminName, updateBusinessIdentity,
-      showStats, showRecentBookings, toggleDashboardSection,
+      showStats, showRecentBookings, showUpcoming, showExpenses, showProductExpenses, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
