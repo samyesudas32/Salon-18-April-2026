@@ -42,7 +42,7 @@ export function DailyProfitOverview() {
       <Card className="border-none shadow-sm bg-primary/5">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider">Daily Revenue</CardTitle>
+            <CardTitle className="text-sm font-bold text-primary tracking-wider">Daily Revenue</CardTitle>
             <Banknote className="h-4 w-4 text-primary opacity-70" />
           </div>
         </CardHeader>
@@ -56,7 +56,7 @@ export function DailyProfitOverview() {
       <Card className="border-none shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold text-destructive uppercase tracking-wider">Daily Expenses</CardTitle>
+            <CardTitle className="text-sm font-bold text-destructive tracking-wider">Daily Expenses</CardTitle>
             <ArrowDownRight className="h-4 w-4 text-destructive opacity-70" />
           </div>
         </CardHeader>
@@ -92,7 +92,7 @@ export function DailyProfitOverview() {
       )}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-white/90">Net Profit ( Daily )</CardTitle>
+            <CardTitle className="text-sm font-bold tracking-wider text-white/90">Net Profit ( Daily )</CardTitle>
             {metrics.netProfit >= 0 ? <TrendingUp className="h-4 w-4 text-white" /> : <ArrowDownRight className="h-4 w-4 text-white" />}
           </div>
         </CardHeader>
