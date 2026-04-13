@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer, FileText } from 'lucide-react';
+import { User, Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer, FileText, IndianRupee } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -124,19 +124,19 @@ export function ServiceTab() {
       }
     });
 
-    // 4. Financial Summary (Professionally aligned box)
+    // 4. Financial Summary (Cleanly Arranged)
     const finalY = (doc as any).lastAutoTable.finalY + 12;
     const boxWidth = 60;
     const startX = 133 - boxWidth;
 
-    // Table-like lines for financials
     doc.setDrawColor(220, 220, 220);
-    doc.line(startX, finalY, 133, finalY); // Top line
+    doc.line(startX, finalY, 133, finalY); // Top divider line
     
     doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
     doc.setFont('helvetica', 'normal');
     
+    // Financial rows
     doc.text('Total Service Charge', startX, finalY + 6);
     doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 6, { align: 'right' });
     
@@ -160,7 +160,7 @@ export function ServiceTab() {
     doc.setFont('helvetica', 'italic');
     doc.text('Thank you for visiting Salon of Guzellik!', 74, 185, { align: 'center' });
     doc.setFont('helvetica', 'normal');
-    doc.text(`Ref: ${record.id.toUpperCase()}`, 74, 190, { align: 'center' });
+    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, 190, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
@@ -171,7 +171,7 @@ export function ServiceTab() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <FileText className="h-6 w-6" />
+              <Briefcase className="h-6 w-6" />
             </div>
             <div>
               <CardTitle className="text-xl font-headline font-bold text-primary">Service Section</CardTitle>
@@ -200,6 +200,7 @@ export function ServiceTab() {
                 <TableHead className="font-bold">Schedule</TableHead>
                 <TableHead className="font-bold">Service Details</TableHead>
                 <TableHead className="font-bold">Attending Staff</TableHead>
+                <TableHead className="font-bold text-right">Total Charge</TableHead>
                 <TableHead className="font-bold text-right">Balance Due</TableHead>
                 <TableHead className="font-bold text-right px-6">Actions</TableHead>
               </TableRow>
@@ -207,7 +208,7 @@ export function ServiceTab() {
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-48 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Briefcase className="h-10 w-10 opacity-20" />
                       <p className="text-sm font-medium">
@@ -259,6 +260,9 @@ export function ServiceTab() {
                       ) : (
                         <span className="text-xs text-muted-foreground italic">Not Assigned</span>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-sm font-medium">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-col items-end">
