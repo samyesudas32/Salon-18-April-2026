@@ -27,7 +27,7 @@ export function StatCards() {
   const stats = useMemo((): StatItem[] => {
     if (!now) {
       return [
-        { label: "Today's Appointments", value: '...', icon: CalendarDays, color: 'text-purple-600', bg: 'bg-purple-50', borderColor: 'border-purple-100' },
+        { label: "Today’s Bookings", value: '...', icon: CalendarDays, color: 'text-purple-600', bg: 'bg-purple-50', borderColor: 'border-purple-100' },
         { label: "Today's Completed", value: '...', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', borderColor: 'border-emerald-100' },
         { label: "Upcoming Booking", value: '...', icon: CalendarClock, color: 'text-blue-600', bg: 'bg-blue-50', borderColor: 'border-blue-100' },
         { label: "Monthly Financial Overview", value: '...', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50', borderColor: 'border-orange-100' },
@@ -80,7 +80,7 @@ export function StatCards() {
 
     return [
       {
-        label: "Today's Appointments",
+        label: "Today’s Bookings",
         value: todaysCount,
         icon: CalendarDays,
         color: 'text-purple-600',
