@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer, FileText, IndianRupee } from 'lucide-react';
+import { Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -46,7 +46,6 @@ export function ServiceTab() {
     });
 
     const primaryColor = [33, 53, 85]; // Dark Blue
-    const accentColor = [191, 78, 57]; // Soft Orange/Accent
 
     // 1. Header with branding
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
@@ -70,20 +69,17 @@ export function ServiceTab() {
     // 2. Info Grid Layout
     let currentY = 45;
     
-    // Labels
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.text('CLIENT DETAILS', 15, currentY);
     doc.text('APPOINTMENT INFO', 85, currentY);
 
-    // Separator line
     doc.setDrawColor(230, 230, 230);
     doc.line(15, currentY + 2, 133, currentY + 2);
 
     currentY += 8;
 
-    // Client Values
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
@@ -91,7 +87,6 @@ export function ServiceTab() {
     doc.setFont('helvetica', 'normal');
     doc.text(record.phoneNumber || 'No Phone provided', 15, currentY + 5);
     
-    // Appointment Values
     doc.setFont('helvetica', 'bold');
     doc.text(format(new Date(record.date), 'MMM dd, yyyy'), 85, currentY);
     doc.setFont('helvetica', 'normal');
@@ -124,35 +119,23 @@ export function ServiceTab() {
       }
     });
 
-    // 4. Financial Summary (Cleanly Arranged)
-    const finalY = (doc as any).lastAutoTable.finalY + 12;
-    const boxWidth = 60;
+    // 4. Financial Summary (Simplified: Only Total Amount)
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    const boxWidth = 70;
     const startX = 133 - boxWidth;
 
-    doc.setDrawColor(220, 220, 220);
-    doc.line(startX, finalY, 133, finalY); // Top divider line
-    
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    doc.setFont('helvetica', 'normal');
-    
-    // Financial rows
-    doc.text('Total Service Charge', startX, finalY + 6);
-    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 6, { align: 'right' });
-    
-    doc.text('Advance Received', startX, finalY + 12);
-    doc.text(`Rs ${record.advanceAmount?.toLocaleString() || '0'}`, 133, finalY + 12, { align: 'right' });
-    
-    // Emphasis line for Balance
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(0.5);
-    doc.line(startX, finalY + 16, 133, finalY + 16);
-
+    doc.setLineWidth(0.8);
+    doc.line(startX, finalY, 133, finalY); // Top emphasis line
+    
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('BALANCE DUE', startX, finalY + 23);
-    doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 23, { align: 'right' });
+    
+    doc.text('TOTAL SERVICE CHARGE', startX, finalY + 8);
+    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 8, { align: 'right' });
+
+    doc.line(startX, finalY + 12, 133, finalY + 12); // Bottom emphasis line
 
     // 5. Footer
     doc.setTextColor(160, 160, 160);
@@ -176,7 +159,7 @@ export function ServiceTab() {
             <div>
               <CardTitle className="text-xl font-headline font-bold text-primary">Service Section</CardTitle>
               <CardDescription>
-                Manage delivery records and print professional slips independently.
+                Manage delivery records and print professional slips with total charges.
               </CardDescription>
             </div>
           </div>
@@ -200,15 +183,14 @@ export function ServiceTab() {
                 <TableHead className="font-bold">Schedule</TableHead>
                 <TableHead className="font-bold">Service Details</TableHead>
                 <TableHead className="font-bold">Attending Staff</TableHead>
-                <TableHead className="font-bold text-right">Total Charge</TableHead>
-                <TableHead className="font-bold text-right">Balance Due</TableHead>
+                <TableHead className="font-bold text-right px-6">Total Charge</TableHead>
                 <TableHead className="font-bold text-right px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-48 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Briefcase className="h-10 w-10 opacity-20" />
                       <p className="text-sm font-medium">
@@ -261,13 +243,10 @@ export function ServiceTab() {
                         <span className="text-xs text-muted-foreground italic">Not Assigned</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-sm font-medium">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
-                    </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right px-6">
                       <div className="flex flex-col items-end">
-                        <span className="text-sm font-black text-orange-600">Rs {record.balanceAmount?.toLocaleString() || '0'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Remaining</span>
+                        <span className="text-sm font-black text-primary">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Amount</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
@@ -299,7 +278,7 @@ export function ServiceTab() {
                               <AlertDialogDescription>
                                 This will permanently remove the service delivery record for <strong>{record.clientName}</strong>. 
                                 <br/><br/>
-                                <span className="text-xs text-muted-foreground italic">Note: The original booking scheduled for {format(new Date(record.date), 'MMM dd')} will remain unaffected.</span>
+                                <span className="text-xs text-muted-foreground italic">Note: The original booking remains unaffected.</span>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

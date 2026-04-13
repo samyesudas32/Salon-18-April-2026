@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone, IndianRupee, Calculator, CreditCard } from 'lucide-react';
+import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone, IndianRupee, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -36,8 +36,6 @@ const formSchema = z.object({
   duration: z.string().optional(),
   staffName: z.string().optional(),
   totalAmount: z.coerce.number().min(0),
-  advanceAmount: z.coerce.number().min(0),
-  balanceAmount: z.coerce.number(),
 });
 
 interface ServiceRecordFormProps {
@@ -60,8 +58,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       duration: record.duration || '',
       staffName: record.staffName || '',
       totalAmount: record.totalAmount || 0,
-      advanceAmount: record.advanceAmount || 0,
-      balanceAmount: record.balanceAmount || 0,
     },
   });
 
@@ -76,17 +72,9 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         duration: record.duration || '',
         staffName: record.staffName || '',
         totalAmount: record.totalAmount || 0,
-        advanceAmount: record.advanceAmount || 0,
-        balanceAmount: record.balanceAmount || 0,
       });
     }
   }, [record, form, open]);
-
-  const handleCalculateBalance = () => {
-    const total = form.getValues('totalAmount');
-    const advance = form.getValues('advanceAmount');
-    form.setValue('balanceAmount', total - advance);
-  };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     updateServiceRecord(record.id, {
@@ -254,59 +242,24 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <Separator />
 
-            {/* Section 3: Professional Bill Section */}
+            {/* Section 3: Financial Summary (Simplified: Only Total Charge) */}
             <div className="space-y-4 bg-muted/30 p-5 rounded-xl border border-border/60 shadow-inner">
               <h3 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 Financial Summary
               </h3>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 max-w-[240px]">
                 <FormField
                   control={form.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Total Charge</FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Total Service Charge</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
                           <Input type="number" className="pl-9 h-10 font-bold text-primary" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="advanceAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Advance Paid</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
-                          <Input type="number" className="pl-9 h-10 font-bold text-green-700 bg-green-50/50" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="balanceAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase">
-                        Balance Due
-                        <Calculator className="h-3 w-3 cursor-pointer text-primary hover:scale-125 transition-transform" onClick={handleCalculateBalance} title="Recalculate Balance" />
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
-                          <Input type="number" className="pl-9 h-10 font-black text-orange-700 bg-orange-100/50" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
