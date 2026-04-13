@@ -110,7 +110,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline font-bold text-primary flex items-center gap-2">
-            Edit Service Delivery Record
+            Edit Delivery Record
           </DialogTitle>
         </DialogHeader>
         
@@ -241,7 +241,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
             <Separator className="my-2" />
             <h3 className="text-sm font-bold text-primary flex items-center gap-2">
               <IndianRupee className="h-4 w-4" />
-              Billing Details (Independent)
+              Bill Section (Independent)
             </h3>
 
             <div className="grid grid-cols-3 gap-2">
@@ -278,7 +278,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   <FormItem>
                     <FormLabel className="flex items-center justify-between">
                       Balance
-                      <Calculator className="h-3 w-3 cursor-pointer text-primary" onClick={handleCalculateBalance} />
+                      <Calculator className="h-3 w-3 cursor-pointer text-primary" onClick={handleCalculateBalance} title="Recalculate Balance" />
                     </FormLabel>
                     <FormControl>
                       <Input type="number" className="font-bold text-orange-600" {...field} />
@@ -291,7 +291,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <DialogFooter className="pt-4 gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-primary">Save Independent Record</Button>
+              <Button type="submit" className="bg-primary">Save Changes</Button>
             </DialogFooter>
           </form>
         </Form>

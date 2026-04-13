@@ -43,11 +43,11 @@ export function ServiceTab() {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a5' // A5 is professional and common for service slips
+      format: 'a5' 
     });
 
-    // Header
-    doc.setFillColor(33, 53, 85); // Primary color
+    // Header with primary color background
+    doc.setFillColor(33, 53, 85); 
     doc.rect(0, 0, 148, 40, 'F');
     
     doc.setTextColor(255, 255, 255);
@@ -58,9 +58,9 @@ export function ServiceTab() {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text('Professional Care & Beauty Services', 74, 25, { align: 'center' });
-    doc.text('Service Delivery Slip', 74, 32, { align: 'center' });
+    doc.text('SERVICE DELIVERY SLIP', 74, 32, { align: 'center' });
 
-    // Client & Date Info
+    // Client & Appointment Info
     doc.setTextColor(33, 53, 85);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -77,10 +77,10 @@ export function ServiceTab() {
     doc.text(`Date: ${format(new Date(record.date), 'MMM dd, yyyy')}`, 90, 57);
     doc.text(`Time: ${record.time}`, 90, 64);
 
-    // Service Table
+    // Service Description Table
     autoTable(doc, {
       startY: 75,
-      head: [['SERVICE DESCRIPTION', 'STAFF', 'DURATION']],
+      head: [['SERVICE DESCRIPTION', 'ATTENDING STAFF', 'DURATION']],
       body: [
         [record.workType, record.staffName || '---', record.duration || '---']
       ],
@@ -88,7 +88,7 @@ export function ServiceTab() {
       headStyles: { fillColor: [33, 53, 85], textColor: [255, 255, 255] },
     });
 
-    // Financial Section (The "Bill Section")
+    // Professional Bill Section
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     
     doc.setDrawColor(200, 200, 200);
@@ -96,17 +96,17 @@ export function ServiceTab() {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('Total Amount:', 85, finalY + 8);
+    doc.text('Total Service Charge:', 85, finalY + 8);
     doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 8, { align: 'right' });
     
-    doc.text('Advance Paid:', 85, finalY + 15);
+    doc.text('Advance Amount Paid:', 85, finalY + 15);
     doc.text(`Rs ${record.advanceAmount?.toLocaleString() || '0'}`, 133, finalY + 15, { align: 'right' });
     
     doc.line(80, finalY + 18, 133, finalY + 18);
     
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(200, 100, 0); // Orange color for balance
-    doc.text('BALANCE DUE:', 85, finalY + 25);
+    doc.setTextColor(200, 100, 0); 
+    doc.text('BALANCE PAYABLE:', 85, finalY + 25);
     doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 25, { align: 'right' });
 
     // Footer
@@ -114,7 +114,7 @@ export function ServiceTab() {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text('Thank you for choosing Salon of Guzellik!', 74, 195, { align: 'center' });
-    doc.text('Please keep this slip for your records.', 74, 200, { align: 'center' });
+    doc.text('This is a computer-generated delivery slip.', 74, 200, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
@@ -126,7 +126,7 @@ export function ServiceTab() {
           <div>
             <CardTitle>Service Section</CardTitle>
             <CardDescription>
-              Manage independent delivery records and billing. Changes here do not affect original bookings.
+              Manage independent delivery records and generate professional slips. Changes here are separate from bookings.
             </CardDescription>
           </div>
           <div className="relative w-full max-w-xs">
@@ -147,8 +147,8 @@ export function ServiceTab() {
               <TableRow>
                 <TableHead className="font-bold">Client Name</TableHead>
                 <TableHead className="font-bold">Phone</TableHead>
-                <TableHead className="font-bold">Appt. Time</TableHead>
-                <TableHead className="font-bold">Service</TableHead>
+                <TableHead className="font-bold">Schedule</TableHead>
+                <TableHead className="font-bold">Service Provided</TableHead>
                 <TableHead className="font-bold">Staff</TableHead>
                 <TableHead className="font-bold text-right">Balance</TableHead>
                 <TableHead className="font-bold text-right">Actions</TableHead>
@@ -158,7 +158,7 @@ export function ServiceTab() {
               {filteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    {searchTerm ? "No matching records found." : "No service delivery records found."}
+                    {searchTerm ? "No matching records found." : "No service records available."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -207,7 +207,7 @@ export function ServiceTab() {
                           size="icon" 
                           className="h-8 w-8 text-primary hover:bg-primary/10"
                           onClick={() => handlePrint(record)}
-                          title="Print Slip"
+                          title="Print Delivery Slip"
                         >
                           <Printer className="h-4 w-4" />
                         </Button>
@@ -216,21 +216,21 @@ export function ServiceTab() {
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" title="Cancel Record">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" title="Cancel Delivery">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Independent Record?</AlertDialogTitle>
+                              <AlertDialogTitle>Cancel Service Record?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will remove the service record for {record.clientName} from this section. The original booking remains intact.
+                                This will permanently remove the service delivery record for {record.clientName}. The original booking will not be affected.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Record</AlertDialogCancel>
+                              <AlertDialogCancel>Go Back</AlertDialogCancel>
                               <AlertDialogAction onClick={() => deleteServiceRecord(record.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Cancel Record
+                                Yes, Cancel Record
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
