@@ -1,3 +1,4 @@
+
 'use client';
 
 import { BookingTable } from '@/components/bookings/booking-table';
@@ -14,7 +15,7 @@ export default function CompletedBookingsPage() {
         <BookingForm />
       </div>
 
-      <BookingTable filterStatus="completed" />
+      <BookingTable filterStatus="completed" hideSchedule={true} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -32,12 +33,14 @@ interface BookingTableProps {
   filterStatus?: 'upcoming' | 'completed' | 'all';
   monthFilter?: string; // "0" to "11" (Date.getMonth() index) or "all"
   sortOrder?: 'newest' | 'oldest' | 'completed-first' | 'upcoming-first';
+  hideSchedule?: boolean;
 }
 
 export function BookingTable({ 
   filterStatus = 'all', 
   monthFilter = 'all',
-  sortOrder = 'newest'
+  sortOrder = 'newest',
+  hideSchedule = false
 }: BookingTableProps) {
   const { bookings, deleteBooking } = useApp();
 
@@ -89,7 +92,7 @@ export function BookingTable({
           <TableRow>
             <TableHead className="font-bold py-4">Client</TableHead>
             <TableHead className="font-bold">Work Type</TableHead>
-            <TableHead className="font-bold">Schedule</TableHead>
+            {!hideSchedule && <TableHead className="font-bold">Schedule</TableHead>}
             <TableHead className="font-bold text-right w-[110px]">Total</TableHead>
             <TableHead className="font-bold text-right w-[110px]">Balance</TableHead>
             <TableHead className="font-bold">General Notes</TableHead>
@@ -100,14 +103,14 @@ export function BookingTable({
         <TableBody>
           {sortedBookings.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-48 text-center text-muted-foreground">
+              <TableCell colSpan={hideSchedule ? 7 : 8} className="h-48 text-center text-muted-foreground">
                 <div className="flex flex-col items-center justify-center space-y-3">
                   <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                     <CalendarOff className="h-6 w-6 opacity-40" />
                   </div>
                   <div>
                     <p className="font-bold text-primary">No results found</p>
-                    <p className="text-sm">Try adjusting your month or status filters.</p>
+                    <p className="text-sm">Try adding a new booking to see your records.</p>
                   </div>
                 </div>
               </TableCell>
@@ -125,15 +128,17 @@ export function BookingTable({
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{booking.workType}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{format(parseISO(booking.date), 'MMM dd, yyyy')}</span>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {booking.time || 'N/A'}
+                {!hideSchedule && (
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{format(parseISO(booking.date), 'MMM dd, yyyy')}</span>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {booking.time || 'N/A'}
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
+                  </TableCell>
+                )}
                 <TableCell className="text-right font-mono text-sm">
                   Rs {booking.totalAmount.toLocaleString()}
                 </TableCell>
