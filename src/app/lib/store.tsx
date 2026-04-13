@@ -34,8 +34,18 @@ interface AppContextType {
   // Business Identity
   businessName: string;
   businessShortName: string;
+  businessDescription: string;
+  businessAddress: string;
+  businessPhone: string;
   adminName: string;
-  updateBusinessIdentity: (name: string, shortName: string, adminName: string) => void;
+  updateBusinessIdentity: (identity: {
+    name?: string;
+    shortName?: string;
+    description?: string;
+    address?: string;
+    phone?: string;
+    admin?: string;
+  }) => void;
   // Dashboard Config
   showStats: boolean;
   showRecentBookings: boolean;
@@ -72,6 +82,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Business Identity State
   const [businessName, setBusinessName] = useState<string>('Salon of Guzellik');
   const [businessShortName, setBusinessShortName] = useState<string>('G');
+  const [businessDescription, setBusinessDescription] = useState<string>('Professional Beauty Care & Salon');
+  const [businessAddress, setBusinessAddress] = useState<string>('West of Iron Bridge, CCSB Rd, Alappuzha, Kerala');
+  const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
 
   // Dashboard Visibility State
@@ -109,6 +122,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       const storedBusinessName = localStorage.getItem('businessName');
       const storedBusinessShortName = localStorage.getItem('businessShortName');
+      const storedBusinessDesc = localStorage.getItem('businessDescription');
+      const storedBusinessAddr = localStorage.getItem('businessAddress');
+      const storedBusinessPhone = localStorage.getItem('businessPhone');
       const storedAdminName = localStorage.getItem('adminName');
       
       const storedShowStats = localStorage.getItem('showStats');
@@ -124,6 +140,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedPass) setAdminPassword(storedPass);
       if (storedBusinessName) setBusinessName(storedBusinessName);
       if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
+      if (storedBusinessDesc) setBusinessDescription(storedBusinessDesc);
+      if (storedBusinessAddr) setBusinessAddress(storedBusinessAddr);
+      if (storedBusinessPhone) setBusinessPhone(storedBusinessPhone);
       if (storedAdminName) setAdminName(storedAdminName);
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
@@ -155,6 +174,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('productExpenses', JSON.stringify(productExpenses));
         localStorage.setItem('businessName', businessName);
         localStorage.setItem('businessShortName', businessShortName);
+        localStorage.setItem('businessDescription', businessDescription);
+        localStorage.setItem('businessAddress', businessAddress);
+        localStorage.setItem('businessPhone', businessPhone);
         localStorage.setItem('adminName', adminName);
         
         localStorage.setItem('showStats', String(showStats));
@@ -169,7 +191,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -195,11 +217,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: 'Password updated successfully!' };
   };
 
-  const updateBusinessIdentity = (name: string, shortName: string, admin: string) => {
-    setBusinessName(name);
-    setBusinessShortName(shortName);
-    setAdminName(admin);
-    toast({ title: "Identity Updated", description: "Business branding and administrator details have been saved." });
+  const updateBusinessIdentity = (identity: {
+    name?: string;
+    shortName?: string;
+    description?: string;
+    address?: string;
+    phone?: string;
+    admin?: string;
+  }) => {
+    if (identity.name !== undefined) setBusinessName(identity.name);
+    if (identity.shortName !== undefined) setBusinessShortName(identity.shortName);
+    if (identity.description !== undefined) setBusinessDescription(identity.description);
+    if (identity.address !== undefined) setBusinessAddress(identity.address);
+    if (identity.phone !== undefined) setBusinessPhone(identity.phone);
+    if (identity.admin !== undefined) setAdminName(identity.admin);
+    
+    toast({ title: "Branding Updated", description: "Business details and slip configuration saved." });
   };
 
   const toggleDashboardSection = (section: DashboardSection) => {
@@ -352,7 +385,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
-      businessName, businessShortName, adminName, updateBusinessIdentity,
+      businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, updateBusinessIdentity,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>

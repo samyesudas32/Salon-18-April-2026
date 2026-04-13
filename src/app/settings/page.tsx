@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,16 +7,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Textarea } from '@/components/ui/textarea';
 
 export default function SettingsPage() {
-  const { updateAdminPassword, businessName, businessShortName, adminName, updateBusinessIdentity } = useApp();
+  const { 
+    updateAdminPassword, 
+    businessName, 
+    businessShortName, 
+    businessDescription,
+    businessAddress,
+    businessPhone,
+    adminName, 
+    updateBusinessIdentity 
+  } = useApp();
   const { toast } = useToast();
   
   // Password State
@@ -31,13 +40,19 @@ export default function SettingsPage() {
   // Identity State
   const [tempBusinessName, setTempBusinessName] = useState(businessName);
   const [tempShortName, setTempShortName] = useState(businessShortName);
+  const [tempDesc, setTempDesc] = useState(businessDescription);
+  const [tempAddress, setTempAddress] = useState(businessAddress);
+  const [tempPhone, setTempPhone] = useState(businessPhone);
   const [tempAdminName, setTempAdminName] = useState(adminName);
 
   useEffect(() => {
     setTempBusinessName(businessName);
     setTempShortName(businessShortName);
+    setTempDesc(businessDescription);
+    setTempAddress(businessAddress);
+    setTempPhone(businessPhone);
     setTempAdminName(adminName);
-  }, [businessName, businessShortName, adminName]);
+  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +64,13 @@ export default function SettingsPage() {
       });
       return;
     }
-    updateBusinessIdentity(tempBusinessName, tempShortName, adminName);
+    updateBusinessIdentity({
+      name: tempBusinessName,
+      shortName: tempShortName,
+      description: tempDesc,
+      address: tempAddress,
+      phone: tempPhone
+    });
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -62,7 +83,7 @@ export default function SettingsPage() {
       });
       return;
     }
-    updateBusinessIdentity(businessName, businessShortName, tempAdminName);
+    updateBusinessIdentity({ admin: tempAdminName });
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -108,7 +129,7 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
         <h2 className="text-3xl font-headline font-bold text-primary tracking-tight">Settings</h2>
-        <p className="text-muted-foreground mt-1 text-lg">Manage your business branding and security preferences.</p>
+        <p className="text-muted-foreground mt-1 text-lg">Manage your business branding, slip data, and security preferences.</p>
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
@@ -120,42 +141,87 @@ export default function SettingsPage() {
                 <Building2 className="h-5 w-5" />
               </div>
               <div className="flex flex-col">
-                <p className="font-bold text-lg text-primary leading-none mb-1">Business Identity</p>
-                <p className="text-sm text-muted-foreground font-normal">Update your salon name and logo branding.</p>
+                <p className="font-bold text-lg text-primary leading-none mb-1">Business Identity & Slips</p>
+                <p className="text-sm text-muted-foreground font-normal">Update the information that appears on your service delivery slips.</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-8">
-            <form onSubmit={handleSaveBranding} className="space-y-5 max-w-md">
+            <form onSubmit={handleSaveBranding} className="space-y-6 max-w-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="businessName">Full Business Name</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="businessName"
+                      className="pl-10 h-11"
+                      value={tempBusinessName}
+                      onChange={(e) => setTempBusinessName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="businessShortName">Logo Initial (Max 3 chars)</Label>
+                  <div className="relative">
+                    <Type className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="businessShortName"
+                      className="pl-10 h-11"
+                      maxLength={3}
+                      value={tempShortName}
+                      onChange={(e) => setTempShortName(e.target.value.toUpperCase())}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="businessName">Full Business Name</Label>
+                <Label htmlFor="businessDesc">Business Description (Slogan)</Label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="businessName"
+                    id="businessDesc"
                     className="pl-10 h-11"
-                    value={tempBusinessName}
-                    onChange={(e) => setTempBusinessName(e.target.value)}
-                    required
+                    placeholder="e.g. Professional Beauty Care & Salon"
+                    value={tempDesc}
+                    onChange={(e) => setTempDesc(e.target.value)}
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="businessShortName">Logo Initial (Max 3 chars)</Label>
+                <Label htmlFor="businessPhone">Contact Numbers</Label>
                 <div className="relative">
-                  <Type className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="businessShortName"
+                    id="businessPhone"
                     className="pl-10 h-11"
-                    maxLength={3}
-                    value={tempShortName}
-                    onChange={(e) => setTempShortName(e.target.value.toUpperCase())}
-                    required
+                    placeholder="e.g. 7025 80 1010, 755 88 74175"
+                    value={tempPhone}
+                    onChange={(e) => setTempPhone(e.target.value)}
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
-                Save Branding Changes
+
+              <div className="space-y-2">
+                <Label htmlFor="businessAddress">Physical Address</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Textarea
+                    id="businessAddress"
+                    className="pl-10 min-h-[80px]"
+                    placeholder="Full business address for the billing slip footer"
+                    value={tempAddress}
+                    onChange={(e) => setTempAddress(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full md:w-auto px-8 h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
+                Save Slip & Branding Changes
               </Button>
             </form>
           </AccordionContent>

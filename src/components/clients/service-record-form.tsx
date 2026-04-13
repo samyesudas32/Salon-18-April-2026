@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone, IndianRupee, CreditCard } from 'lucide-react';
+import { Pencil, User, Briefcase, Clock, CalendarIcon, UserCheck, Hourglass, Phone, IndianRupee, CreditCard, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { useApp } from '@/app/lib/store';
 import { ServiceRecord } from '@/app/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const formSchema = z.object({
   clientName: z.string().min(2, 'Name is required'),
@@ -36,6 +37,8 @@ const formSchema = z.object({
   duration: z.string().optional(),
   staffName: z.string().optional(),
   totalAmount: z.coerce.number().min(0),
+  advanceAmount: z.coerce.number().min(0),
+  balanceAmount: z.coerce.number(),
 });
 
 interface ServiceRecordFormProps {
@@ -58,6 +61,8 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       duration: record.duration || '',
       staffName: record.staffName || '',
       totalAmount: record.totalAmount || 0,
+      advanceAmount: record.advanceAmount || 0,
+      balanceAmount: record.balanceAmount || 0,
     },
   });
 
@@ -72,9 +77,17 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
         duration: record.duration || '',
         staffName: record.staffName || '',
         totalAmount: record.totalAmount || 0,
+        advanceAmount: record.advanceAmount || 0,
+        balanceAmount: record.balanceAmount || 0,
       });
     }
   }, [record, form, open]);
+
+  const handleAutoSum = () => {
+    const total = form.getValues('totalAmount');
+    const advance = form.getValues('advanceAmount');
+    form.setValue('balanceAmount', total - advance);
+  };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     updateServiceRecord(record.id, {
@@ -94,11 +107,11 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
         <DialogHeader className="pb-2 border-b">
           <DialogTitle className="text-2xl font-headline font-bold text-primary flex items-center gap-2">
             <Edit className="h-6 w-6" />
-            Edit Delivery Record
+            Edit Service Delivery Record
           </DialogTitle>
         </DialogHeader>
         
@@ -242,24 +255,76 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <Separator />
 
-            {/* Section 3: Financial Summary (Simplified: Only Total Charge) */}
+            {/* Section 3: Financial Summary */}
             <div className="space-y-4 bg-muted/30 p-5 rounded-xl border border-border/60 shadow-inner">
               <h3 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Financial Summary
+                Financial Summary (Slip Details)
               </h3>
 
-              <div className="grid grid-cols-1 max-w-[240px]">
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Total Service Charge</FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Total Charge</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
-                          <Input type="number" className="pl-9 h-10 font-bold text-primary" {...field} />
+                          <Input type="number" className="pl-9 h-10 font-bold" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="advanceAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[11px] font-bold text-muted-foreground uppercase">Advance Paid</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
+                          <Input type="number" className="pl-9 h-10 text-green-700" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="balanceAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase">
+                        Balance
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-5 w-5 text-primary"
+                                onClick={handleAutoSum}
+                              >
+                                <Calculator className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Calculate (Total - Advance)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">Rs</span>
+                          <Input type="number" className="pl-9 h-10 font-black text-orange-700" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -271,7 +336,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <DialogFooter className="pt-4 border-t gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)} className="px-6">Cancel</Button>
-              <Button type="submit" className="bg-primary px-8">Save Record</Button>
+              <Button type="submit" className="bg-primary px-8">Save Slip Data</Button>
             </DialogFooter>
           </form>
         </Form>

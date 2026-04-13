@@ -24,7 +24,14 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function ServiceTab() {
-  const { serviceRecords, deleteServiceRecord } = useApp();
+  const { 
+    serviceRecords, 
+    deleteServiceRecord, 
+    businessName, 
+    businessDescription, 
+    businessAddress, 
+    businessPhone 
+  } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredRecords = useMemo(() => {
@@ -47,30 +54,30 @@ export function ServiceTab() {
 
     const primaryColor = [33, 53, 85]; // Dark Blue
 
-    // 1. Header with branding
+    // 1. Header with branding (Editable from Settings)
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
-    doc.rect(0, 0, 148, 40, 'F'); // Increased height slightly
+    doc.rect(0, 0, 148, 40, 'F'); 
     
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24); // Increased from 20
-    doc.text('SALON OF GUZELLIK', 74, 18, { align: 'center' });
+    doc.setFontSize(24);
+    doc.text(businessName.toUpperCase(), 74, 18, { align: 'center' });
     
-    doc.setFontSize(11); // Increased from 9
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text('Professional Beauty Care & Salon', 74, 25, { align: 'center' });
+    doc.text(businessDescription || 'Service Business Professional', 74, 25, { align: 'center' });
     
     doc.setFillColor(255, 255, 255, 0.2);
-    doc.rect(34, 29, 80, 7, 'F'); // Adjusted box
-    doc.setFontSize(12); // Increased from 10
+    doc.rect(34, 29, 80, 7, 'F');
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('SERVICE DELIVERY SLIP', 74, 34, { align: 'center' });
 
     // 2. Info Grid Layout
-    let currentY = 50; // Adjusted starting Y
+    let currentY = 50;
     
     doc.setTextColor(100, 100, 100);
-    doc.setFontSize(10); // Increased from 8
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('CLIENT DETAILS', 15, currentY);
     doc.text('APPOINTMENT INFO', 85, currentY);
@@ -81,7 +88,7 @@ export function ServiceTab() {
     currentY += 10;
 
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setFontSize(11); // Increased from 10
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text(record.clientName, 15, currentY);
     doc.setFont('helvetica', 'normal');
@@ -103,7 +110,7 @@ export function ServiceTab() {
       ],
       margin: { left: 15, right: 15 },
       styles: { 
-        fontSize: 10, // Increased from 9
+        fontSize: 10,
         cellPadding: 5,
         valign: 'middle',
         lineColor: [240, 240, 240],
@@ -119,48 +126,46 @@ export function ServiceTab() {
       }
     });
 
-    // 4. Financial Summary (Only Total Charge as requested)
+    // 4. Financial Summary
     const finalY = (doc as any).lastAutoTable.finalY + 15;
-    const boxWidth = 80; // Slightly wider
+    const boxWidth = 80;
     const startX = 133 - boxWidth;
 
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.8);
-    doc.line(startX, finalY, 133, finalY); // Top emphasis line
+    doc.line(startX, finalY, 133, finalY);
     
-    doc.setFontSize(13); // Increased from 11
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     
     doc.text('TOTAL SERVICE CHARGE', startX, finalY + 10);
     doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 10, { align: 'right' });
 
-    doc.line(startX, finalY + 15, 133, finalY + 15); // Bottom emphasis line
+    doc.line(startX, finalY + 15, 133, finalY + 15);
 
-    // 5. Footer with Address and Phone
-    const footerY = 175; // Adjusted slightly up to fit bigger text
-    doc.setTextColor(60, 60, 60); // Darker for better visibility
-    doc.setFontSize(10); // Significantly increased from 7.5
+    // 5. Footer with Address and Phone (Editable from Settings)
+    const footerY = 175;
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     
-    const addressLine1 = "West of Iron Bridge, CCSB Rd, near Merino Fabrics,";
-    const addressLine2 = "Kodiveedu, Alappuzha, Kerala 688001";
-    const phoneLine = "Ph: 7025 80 1010, 755 88 74175";
+    const addressLines = doc.splitTextToSize(businessAddress || 'Address not configured in Settings', 110);
+    const phoneLine = `Ph: ${businessPhone || 'N/A'}`;
     
-    doc.text(addressLine1, 74, footerY, { align: 'center' });
-    doc.text(addressLine2, 74, footerY + 4.5, { align: 'center' });
+    doc.text(addressLines, 74, footerY, { align: 'center' });
     
     doc.setFont('helvetica', 'bold');
-    doc.text(phoneLine, 74, footerY + 10, { align: 'center' });
+    doc.text(phoneLine, 74, footerY + (addressLines.length * 5) + 2, { align: 'center' });
 
     doc.setTextColor(100, 100, 100);
-    doc.setFontSize(12); // Increased from 8.5
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for visiting Salon of Guzellik!', 74, footerY + 20, { align: 'center' });
+    doc.text(`Thank you for visiting ${businessName}!`, 74, footerY + 22, { align: 'center' });
     
-    doc.setFontSize(7); // Slightly bigger ref ID
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, footerY + 26, { align: 'center' });
+    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, footerY + 28, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
@@ -176,7 +181,7 @@ export function ServiceTab() {
             <div>
               <CardTitle className="text-xl font-headline font-bold text-primary">Service Section</CardTitle>
               <CardDescription>
-                Manage delivery records and print professional slips with total charges.
+                Manage dynamic delivery records. Update branding in Settings to change slip content.
               </CardDescription>
             </div>
           </div>
@@ -199,15 +204,14 @@ export function ServiceTab() {
                 <TableHead className="font-bold py-4">Client Information</TableHead>
                 <TableHead className="font-bold">Schedule</TableHead>
                 <TableHead className="font-bold">Service Details</TableHead>
-                <TableHead className="font-bold">Attending Staff</TableHead>
-                <TableHead className="font-bold text-right px-6">Total Charge</TableHead>
+                <TableHead className="font-bold text-right px-6">Payments</TableHead>
                 <TableHead className="font-bold text-right px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Briefcase className="h-10 w-10 opacity-20" />
                       <p className="text-sm font-medium">
@@ -240,30 +244,16 @@ export function ServiceTab() {
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <span className="text-sm font-medium">{record.workType}</span>
-                        {record.duration && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <Hourglass className="h-3 w-3" />
-                            {record.duration}
-                          </div>
-                        )}
+                        <span className="text-[11px] text-muted-foreground">Staff: {record.staffName || 'N/A'}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {record.staffName ? (
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
-                            {record.staffName.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="text-sm">{record.staffName}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">Not Assigned</span>
-                      )}
                     </TableCell>
                     <TableCell className="text-right px-6">
                       <div className="flex flex-col items-end">
                         <span className="text-sm font-black text-primary">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Total</span>
+                        <div className="flex gap-2 text-[10px] text-muted-foreground font-bold">
+                          <span className="text-green-600">Paid: {record.advanceAmount}</span>
+                          <span className="text-orange-600">Due: {record.balanceAmount}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
