@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
-import { format } from 'date-fns';
-import { Pencil, Trash2, Wallet } from 'lucide-react';
+import { format, parseISO, getMonth } from 'date-fns';
+import { Pencil, Trash2, Wallet, CalendarOff } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import {
   AlertDialog,
@@ -28,16 +28,30 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 
-export function ExpenseTable() {
+interface ExpenseTableProps {
+  monthFilter?: string;
+}
+
+export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
   const { expenses, deleteExpense } = useApp();
 
-  const sortedExpenses = useMemo(() => {
-    return [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses]);
+  const filteredExpenses = useMemo(() => {
+    let filtered = [...expenses];
+
+    if (monthFilter !== 'all') {
+      const monthIndex = parseInt(monthFilter);
+      filtered = filtered.filter((expense) => {
+        const date = parseISO(expense.date);
+        return getMonth(date) === monthIndex;
+      });
+    }
+
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [expenses, monthFilter]);
   
   const totalExpense = useMemo(() => {
-    return expenses.reduce((acc, expense) => acc + expense.amount, 0);
-  }, [expenses]);
+    return filteredExpenses.reduce((acc, expense) => acc + expense.amount, 0);
+  }, [filteredExpenses]);
 
   return (
     <Card className="border-none shadow-sm">
@@ -53,19 +67,24 @@ export function ExpenseTable() {
             </TableRow>
             </TableHeader>
             <TableBody>
-            {sortedExpenses.length === 0 ? (
+            {filteredExpenses.length === 0 ? (
                 <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                        <Wallet className="h-8 w-8 opacity-20" />
-                        <p>No expenses recorded yet.</p>
+                <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                          <CalendarOff className="h-6 w-6 opacity-40" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-primary">No expenses found</p>
+                          <p className="text-sm">Try adjusting your filters or adding a new record.</p>
+                        </div>
                     </div>
                 </TableCell>
                 </TableRow>
             ) : (
-                sortedExpenses.map((expense) => (
+                filteredExpenses.map((expense) => (
                 <TableRow key={expense.id} className="hover:bg-muted/20 transition-colors group">
-                    <TableCell className="font-medium">{format(new Date(expense.date), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell className="font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</TableCell>
                     <TableCell className="text-muted-foreground">{expense.item}</TableCell>
                     <TableCell className="text-right font-mono font-semibold text-destructive">Rs {expense.amount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
@@ -106,7 +125,7 @@ export function ExpenseTable() {
                 ))
             )}
             </TableBody>
-            {sortedExpenses.length > 0 && (
+            {filteredExpenses.length > 0 && (
               <TableFooter>
                   <TableRow className="bg-muted/40 font-bold">
                       <TableCell colSpan={2} className="text-right">Total Expenses</TableCell>
