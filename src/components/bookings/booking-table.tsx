@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
-import { format, parseISO, getMonth } from 'date-fns';
+import { format, parseISO, getMonth, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Pencil, Trash2, Phone, Clock, AlignLeft, CalendarOff } from 'lucide-react';
 import { BookingForm } from './booking-form';
@@ -32,6 +32,8 @@ import {
 interface BookingTableProps {
   filterStatus?: 'upcoming' | 'completed' | 'all';
   monthFilter?: string; // "0" to "11" (Date.getMonth() index) or "all"
+  startDate?: string;
+  endDate?: string;
   sortOrder?: 'newest' | 'oldest' | 'completed-first' | 'upcoming-first';
   hideSchedule?: boolean;
 }
@@ -39,6 +41,8 @@ interface BookingTableProps {
 export function BookingTable({ 
   filterStatus = 'all', 
   monthFilter = 'all',
+  startDate,
+  endDate,
   sortOrder = 'newest',
   hideSchedule = false
 }: BookingTableProps) {
@@ -61,7 +65,25 @@ export function BookingTable({
       });
     }
 
-    // 3. Sorting
+    // 3. Custom Date Range filtering
+    if (startDate || endDate) {
+      filtered = filtered.filter((booking) => {
+        const bookingDate = parseISO(booking.date);
+        const start = startDate ? startOfDay(parseISO(startDate)) : null;
+        const end = endDate ? endOfDay(parseISO(endDate)) : null;
+
+        if (start && end) {
+          return isWithinInterval(bookingDate, { start, end });
+        } else if (start) {
+          return bookingDate >= start;
+        } else if (end) {
+          return bookingDate <= end;
+        }
+        return true;
+      });
+    }
+
+    // 4. Sorting
     return filtered.sort((a, b) => {
       const dateTimeA = new Date(`${a.date}T${a.time || '00:00'}`).getTime() || 0;
       const dateTimeB = new Date(`${b.date}T${b.time || '00:00'}`).getTime() || 0;
@@ -83,7 +105,7 @@ export function BookingTable({
       // Default: Newest first
       return dateTimeB - dateTimeA;
     });
-  }, [bookings, filterStatus, monthFilter, sortOrder]);
+  }, [bookings, filterStatus, monthFilter, startDate, endDate, sortOrder]);
 
   return (
     <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm">
