@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
-import { format, parseISO, getMonth } from 'date-fns';
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { Pencil, Trash2, Wallet, CalendarOff, Download } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import {
@@ -31,30 +31,35 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 interface ExpenseTableProps {
-  monthFilter?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
-const MONTHS_NAME = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
+export function ExpenseTable({ startDate, endDate }: ExpenseTableProps) {
   const { expenses, deleteExpense, businessName } = useApp();
 
   const filteredExpenses = useMemo(() => {
     let filtered = [...expenses];
 
-    if (monthFilter !== 'all') {
-      const monthIndex = parseInt(monthFilter);
+    if (startDate || endDate) {
       filtered = filtered.filter((expense) => {
-        const date = parseISO(expense.date);
-        return getMonth(date) === monthIndex;
+        const expenseDate = parseISO(expense.date);
+        const start = startDate ? startOfDay(parseISO(startDate)) : null;
+        const end = endDate ? endOfDay(parseISO(endDate)) : null;
+
+        if (start && end) {
+          return isWithinInterval(expenseDate, { start, end });
+        } else if (start) {
+          return expenseDate >= start;
+        } else if (end) {
+          return expenseDate <= end;
+        }
+        return true;
       });
     }
 
     return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses, monthFilter]);
+  }, [expenses, startDate, endDate]);
   
   const totalExpense = useMemo(() => {
     return filteredExpenses.reduce((acc, expense) => acc + expense.amount, 0);
@@ -62,10 +67,14 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    const monthLabel = monthFilter === 'all' ? 'All Months' : MONTHS_NAME[parseInt(monthFilter)];
-    const primaryColor = [33, 53, 85]; // Branding color
+    const periodLabel = startDate && endDate 
+      ? `From ${format(parseISO(startDate), 'PP')} to ${format(parseISO(endDate), 'PP')}`
+      : startDate ? `Since ${format(parseISO(startDate), 'PP')}`
+      : endDate ? `Until ${format(parseISO(endDate), 'PP')}`
+      : 'All Records';
+      
+    const primaryColor = [33, 53, 85];
 
-    // Report Header
     doc.setFontSize(22);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'bold');
@@ -80,11 +89,10 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
 
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Report Period: ${monthLabel}`, 14, 40);
+    doc.text(`Report Period: ${periodLabel}`, 14, 40);
     doc.text(`Generated Date: ${format(new Date(), 'PPP p')}`, 14, 45);
-    doc.text(`Total Monthly Expense: Rs ${totalExpense.toLocaleString()}`, 14, 50);
+    doc.text(`Total Expenditure: Rs ${totalExpense.toLocaleString()}`, 14, 50);
 
-    // Expense Table
     autoTable(doc, {
       startY: 55,
       head: [['DATE', 'ITEM / DESCRIPTION', 'AMOUNT (RS)']],
@@ -93,7 +101,7 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
         e.item,
         e.amount.toLocaleString()
       ]),
-      foot: [[{ content: 'TOTAL MONTHLY EXPENDITURE', colSpan: 2, styles: { halign: 'right' } }, totalExpense.toLocaleString()]],
+      foot: [[{ content: 'TOTAL EXPENDITURE', colSpan: 2, styles: { halign: 'right' } }, totalExpense.toLocaleString()]],
       theme: 'striped',
       headStyles: { 
         fillColor: primaryColor, 
@@ -114,7 +122,7 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
       margin: { left: 14, right: 14 }
     });
 
-    doc.save(`${businessName.replace(/\s+/g, '_')}_Expenses_${monthLabel}.pdf`);
+    doc.save(`${businessName.replace(/\s+/g, '_')}_Expenses.pdf`);
   };
 
   return (
@@ -156,7 +164,7 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
                         </div>
                         <div>
                           <p className="font-bold text-primary">No expenses found</p>
-                          <p className="text-sm">Try adjusting your filters or adding a new record.</p>
+                          <p className="text-sm">Try adjusting your date range or adding a new record.</p>
                         </div>
                     </div>
                 </TableCell>
@@ -208,7 +216,7 @@ export function ExpenseTable({ monthFilter = 'all' }: ExpenseTableProps) {
             {filteredExpenses.length > 0 && (
               <TableFooter>
                   <TableRow className="bg-muted/40 font-bold border-t-2">
-                      <TableCell colSpan={2} className="text-right text-primary uppercase tracking-tight">Total Monthly Expenditure</TableCell>
+                      <TableCell colSpan={2} className="text-right text-primary uppercase tracking-tight">Total Period Expenditure</TableCell>
                       <TableCell className="text-right font-black text-destructive text-lg">Rs {totalExpense.toLocaleString()}</TableCell>
                       <TableCell></TableCell>
                   </TableRow>
