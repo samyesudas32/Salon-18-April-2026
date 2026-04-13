@@ -81,10 +81,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
       const storedPass = localStorage.getItem('adminPassword');
-      const storedBookings = localStorage.getItem('bookings');
-      const storedServiceRecords = localStorage.getItem('serviceRecords');
-      const storedExpenses = localStorage.getItem('expenses');
-      const storedProductExpenses = localStorage.getItem('productExpenses');
+      
+      const getSafeParsed = (key: string) => {
+        const item = localStorage.getItem(key);
+        if (!item || item === 'undefined' || item.trim() === '') return null;
+        try {
+          return JSON.parse(item);
+        } catch (e) {
+          console.warn(`SafeParse: Failed to parse key "${key}"`, e);
+          return null;
+        }
+      };
+
+      const storedBookings = getSafeParsed('bookings');
+      const storedServiceRecords = getSafeParsed('serviceRecords');
+      const storedExpenses = getSafeParsed('expenses');
+      const storedProductExpenses = getSafeParsed('productExpenses');
+      
       const storedBusinessName = localStorage.getItem('businessName');
       const storedBusinessShortName = localStorage.getItem('businessShortName');
       const storedAdminName = localStorage.getItem('adminName');
@@ -109,10 +122,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
       if (storedShowReports !== null) setShowReports(storedShowReports === 'true');
 
-      if (storedBookings) setBookings(JSON.parse(storedBookings));
-      if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
-      if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
-      if (storedProductExpenses) setProductExpenses(JSON.parse(storedProductExpenses));
+      if (Array.isArray(storedBookings)) setBookings(storedBookings);
+      if (Array.isArray(storedServiceRecords)) setServiceRecords(storedServiceRecords);
+      if (Array.isArray(storedExpenses)) setExpenses(storedExpenses);
+      if (Array.isArray(storedProductExpenses)) setProductExpenses(storedProductExpenses);
     } catch (e) {
       console.warn("Could not restore state from local storage", e);
     } finally {
