@@ -158,25 +158,53 @@ export function FinancialDashboard() {
 
   const downloadPDF = (type: 'daily' | 'monthly' | 'annual') => {
     const doc = new jsPDF();
+    const now = new Date();
+    const todayStr = format(now, 'yyyy-MM-dd');
     
     let title = '';
     let tableData = [];
-    let headers = ['Period', 'Completed', 'Revenue', 'Expenses', 'Net Profit'];
+    let headers = ['Description', 'Amount'];
 
     if (type === 'daily') {
-      title = `Daily Financial Report (${format(new Date(), 'MMMM yyyy')})`;
-      headers = ['Date', 'Expenses', 'Net Profit'];
-      tableData = dailyReport.map(r => [
+      title = `Today's Financial Status (${format(now, 'PPP')})`;
+      
+      const dayBookings = bookings.filter(b => b.date === todayStr && b.status === 'completed');
+      const dayDailyExpenses = dailyExpenses.filter(e => e.date === todayStr);
+      const dayProductExpenses = productExpenses.filter(e => e.date === todayStr);
+
+      const revenue = dayBookings.reduce((s, b) => s + b.totalAmount, 0);
+      const bookingEx = dayBookings.reduce((s, b) => s + b.expenseAmount, 0);
+      const dailyEx = dayDailyExpenses.reduce((s, e) => s + e.amount, 0);
+      const productEx = dayProductExpenses.reduce((s, e) => s + e.amount, 0);
+
+      const totalEx = bookingEx + dailyEx + productEx;
+      const net = revenue - totalEx;
+
+      tableData = [
+        ['Total Revenue (Completed)', `Rs ${revenue.toLocaleString()}`],
+        ['Total Daily Expenses', `Rs ${totalEx.toLocaleString()}`],
+        ['Net Daily Profit', `Rs ${net.toLocaleString()}`]
+      ];
+    } else if (type === 'monthly') {
+      title = 'Monthly Financial Report (Last 6 Months)';
+      headers = ['Period', 'Completed', 'Revenue', 'Expenses', 'Net Profit'];
+      tableData = monthlyReport.map(r => [
         r.period, 
+        r.totalBookings, 
+        `Rs ${r.totalRevenue.toLocaleString()}`, 
         `Rs ${r.totalExpenses.toLocaleString()}`, 
         `Rs ${r.netProfit.toLocaleString()}`
       ]);
-    } else if (type === 'monthly') {
-      title = 'Monthly Financial Report (Last 6 Months)';
-      tableData = monthlyReport.map(r => [r.period, r.totalBookings, `Rs ${r.totalRevenue.toLocaleString()}`, `Rs ${r.totalExpenses.toLocaleString()}`, `Rs ${r.netProfit.toLocaleString()}`]);
     } else {
       title = `Annual Financial Report (${annualReport.period})`;
-      tableData = [[annualReport.period, annualReport.totalBookings, `Rs ${annualReport.totalRevenue.toLocaleString()}`, `Rs ${annualReport.totalExpenses.toLocaleString()}`, `Rs ${annualReport.netProfit.toLocaleString()}`]];
+      headers = ['Year', 'Completed', 'Revenue', 'Expenses', 'Net Profit'];
+      tableData = [[
+        annualReport.period, 
+        annualReport.totalBookings, 
+        `Rs ${annualReport.totalRevenue.toLocaleString()}`, 
+        `Rs ${annualReport.totalExpenses.toLocaleString()}`, 
+        `Rs ${annualReport.netProfit.toLocaleString()}`
+      ]];
     }
     
     doc.setFontSize(22);
@@ -198,7 +226,7 @@ export function FinancialDashboard() {
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [33, 53, 85] },
-      styles: { fontSize: 9 },
+      styles: { fontSize: 10, cellPadding: 5 },
     });
 
     doc.save(`${businessName.replace(/\s+/g, '_')}_${type}_Report.pdf`);
@@ -228,7 +256,7 @@ export function FinancialDashboard() {
             onClick={() => downloadPDF('daily')}
           >
             <Calendar className="h-4 w-4" />
-            Daily PDF
+            Today's PDF
           </Button>
           <Button 
             variant="outline" 
