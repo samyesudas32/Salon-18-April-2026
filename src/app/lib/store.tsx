@@ -32,6 +32,10 @@ interface AppContextType {
   businessShortName: string;
   adminName: string;
   updateBusinessIdentity: (name: string, shortName: string, adminName: string) => void;
+  // Dashboard Config
+  showStats: boolean;
+  showRecentBookings: boolean;
+  toggleDashboardSection: (section: 'stats' | 'bookings') => void;
   // Auth state
   isLoggedIn: boolean;
   login: (userId: string, pass: string) => boolean;
@@ -60,6 +64,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessShortName, setBusinessShortName] = useState<string>('G');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
 
+  // Dashboard Visibility State
+  const [showStats, setShowStats] = useState<boolean>(true);
+  const [showRecentBookings, setShowRecentBookings] = useState<boolean>(true);
+
   useEffect(() => {
     try {
       const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
@@ -71,12 +79,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessName = localStorage.getItem('businessName');
       const storedBusinessShortName = localStorage.getItem('businessShortName');
       const storedAdminName = localStorage.getItem('adminName');
+      const storedShowStats = localStorage.getItem('showStats');
+      const storedShowBookings = localStorage.getItem('showRecentBookings');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
       if (storedBusinessName) setBusinessName(storedBusinessName);
       if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
       if (storedAdminName) setAdminName(storedAdminName);
+      if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
+      if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
 
       if (storedBookings) setBookings(JSON.parse(storedBookings));
       if (storedServiceRecords) setServiceRecords(JSON.parse(storedServiceRecords));
@@ -99,11 +111,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessName', businessName);
         localStorage.setItem('businessShortName', businessShortName);
         localStorage.setItem('adminName', adminName);
+        localStorage.setItem('showStats', String(showStats));
+        localStorage.setItem('showRecentBookings', String(showRecentBookings));
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -134,6 +148,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setBusinessShortName(shortName);
     setAdminName(admin);
     toast({ title: "Identity Updated", description: "Business branding and administrator details have been saved." });
+  };
+
+  const toggleDashboardSection = (section: 'stats' | 'bookings') => {
+    if (section === 'stats') setShowStats(!showStats);
+    if (section === 'bookings') setShowRecentBookings(!showRecentBookings);
+    toast({ title: "Dashboard Updated", description: `${section.charAt(0).toUpperCase() + section.slice(1)} section ${section === 'stats' ? (!showStats ? 'added' : 'removed') : (!showRecentBookings ? 'added' : 'removed')}.` });
   };
 
   const addBooking = (newBooking: Omit<Booking, 'id'>) => {
@@ -241,6 +261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
       businessName, businessShortName, adminName, updateBusinessIdentity,
+      showStats, showRecentBookings, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}
