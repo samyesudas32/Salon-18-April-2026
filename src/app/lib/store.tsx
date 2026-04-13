@@ -24,11 +24,13 @@ interface AppContextType {
   addExpense: (expense: Omit<Expense, 'id'>) => void;
   updateExpense: (id: string, expense: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
+  deleteExpenses: (ids: string[]) => void;
   // Product Expense state
   productExpenses: ProductExpense[];
   addProductExpense: (expense: Omit<ProductExpense, 'id'>) => void;
   updateProductExpense: (id: string, expense: Partial<ProductExpense>) => void;
   deleteProductExpense: (id: string) => void;
+  deleteProductExpenses: (ids: string[]) => void;
   // Business Identity
   businessName: string;
   businessShortName: string;
@@ -278,6 +280,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Expense Deleted", description: "The expense has been removed." });
   };
 
+  const deleteExpenses = (ids: string[]) => {
+    setExpenses((prev) => prev.filter((e) => !ids.includes(e.id)));
+    toast({ 
+      title: "Bulk Delete Successful", 
+      description: `${ids.length} expense records have been permanently removed.` 
+    });
+  };
+
   const addProductExpense = (newExpense: Omit<ProductExpense, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
     setProductExpenses((prev) => [{ ...newExpense, id }, ...prev]);
@@ -292,6 +302,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const deleteProductExpense = (id: string) => {
     setProductExpenses((prev) => prev.filter((e) => e.id !== id));
     toast({ title: "Product Expense Deleted", description: "The product expense has been removed." });
+  };
+
+  const deleteProductExpenses = (ids: string[]) => {
+    setProductExpenses((prev) => prev.filter((e) => !ids.includes(e.id)));
+    toast({ 
+      title: "Bulk Delete Successful", 
+      description: `${ids.length} product purchase records have been permanently removed.` 
+    });
   };
 
   useEffect(() => {
@@ -320,8 +338,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{ 
       bookings, addBooking, updateBooking, deleteBooking, deleteBookings,
       serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
-      expenses, addExpense, updateExpense, deleteExpense,
-      productExpenses, addProductExpense, updateProductExpense, deleteProductExpense,
+      expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
+      productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, adminName, updateBusinessIdentity,
       showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword

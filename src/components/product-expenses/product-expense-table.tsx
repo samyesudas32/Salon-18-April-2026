@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,9 +11,10 @@ import {
   TableFooter,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from '@/app/lib/store';
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { Pencil, Trash2, ShoppingBag, CalendarOff, Download } from 'lucide-react';
+import { Pencil, Trash2, ShoppingBag, CalendarOff, Download, AlertTriangle } from 'lucide-react';
 import { ProductExpenseForm } from './product-expense-form';
 import {
   AlertDialog,
@@ -36,7 +37,8 @@ interface ProductExpenseTableProps {
 }
 
 export function ProductExpenseTable({ startDate, endDate }: ProductExpenseTableProps) {
-  const { productExpenses, deleteProductExpense, businessName } = useApp();
+  const { productExpenses, deleteProductExpense, deleteProductExpenses, businessName } = useApp();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filteredExpenses = useMemo(() => {
     let filtered = [...productExpenses];
@@ -64,6 +66,25 @@ export function ProductExpenseTable({ startDate, endDate }: ProductExpenseTableP
   const totalExpense = useMemo(() => {
     return filteredExpenses.reduce((acc, expense) => acc + expense.amount, 0);
   }, [filteredExpenses]);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredExpenses.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredExpenses.map(e => e.id));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    deleteProductExpenses(selectedIds);
+    setSelectedIds([]);
+  };
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -126,105 +147,156 @@ export function ProductExpenseTable({ startDate, endDate }: ProductExpenseTableP
   };
 
   return (
-    <Card className="border-none shadow-sm overflow-hidden rounded-xl">
-      <div className="flex items-center justify-between p-5 bg-card border-b border-border/40">
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="h-5 w-5 text-primary" />
-          <h3 className="font-bold text-primary">Product Purchase Records</h3>
+    <div className="space-y-4">
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between p-4 bg-destructive/10 border border-destructive/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-destructive flex items-center justify-center text-destructive-foreground">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-destructive">{selectedIds.length} Purchases Selected</p>
+              <p className="text-xs text-muted-foreground">Confirm to permanently remove these records.</p>
+            </div>
+          </div>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-2 shadow-lg shadow-destructive/20">
+                <Trash2 className="h-4 w-4" />
+                Delete Selected
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Bulk Delete Confirmation</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you absolutely sure you want to delete {selectedIds.length} selected product purchase records? This action is permanent.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Delete All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="gap-2 border-primary/20 text-primary hover:bg-primary/5 h-9"
-          onClick={handleDownloadPDF}
-          disabled={filteredExpenses.length === 0}
-        >
-          <Download className="h-4 w-4" />
-          Download PDF
-        </Button>
-      </div>
-      <CardContent className="p-0">
-        <div className="overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="font-bold w-[150px] py-4">Date</TableHead>
-                <TableHead className="font-bold">Product Details</TableHead>
-                <TableHead className="font-bold text-right w-[150px]">Amount</TableHead>
-                <TableHead className="font-bold text-right w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredExpenses.length === 0 ? (
+      )}
+
+      <Card className="border-none shadow-sm overflow-hidden rounded-xl">
+        <div className="flex items-center justify-between p-5 bg-card border-b border-border/40">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="h-5 w-5 text-primary" />
+            <h3 className="font-bold text-primary">Product Purchase Records</h3>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 border-primary/20 text-primary hover:bg-primary/5 h-9"
+            onClick={handleDownloadPDF}
+            disabled={filteredExpenses.length === 0}
+          >
+            <Download className="h-4 w-4" />
+            Download PDF
+          </Button>
+        </div>
+        <CardContent className="p-0">
+          <div className="overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                        <CalendarOff className="h-6 w-6 opacity-40" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-primary">No product expenses found</p>
-                        <p className="text-sm">Try adjusting your date range or adding a new record.</p>
-                      </div>
-                    </div>
-                  </TableCell>
+                  <TableHead className="w-[50px] px-4">
+                    <Checkbox 
+                      checked={filteredExpenses.length > 0 && selectedIds.length === filteredExpenses.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead className="font-bold w-[150px] py-4">Date</TableHead>
+                  <TableHead className="font-bold">Product Details</TableHead>
+                  <TableHead className="font-bold text-right w-[150px]">Amount</TableHead>
+                  <TableHead className="font-bold text-right w-[100px]">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filteredExpenses.map((expense) => (
-                  <TableRow key={expense.id} className="hover:bg-muted/10 transition-colors group">
-                    <TableCell className="font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</TableCell>
-                    <TableCell className="text-muted-foreground">{expense.productDetails}</TableCell>
-                    <TableCell className="text-right font-mono font-bold text-destructive">Rs {expense.amount.toLocaleString()}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ProductExpenseForm
-                          expense={expense}
-                          trigger={
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          }
-                        />
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete the product expense record. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteProductExpense(expense.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+              </TableHeader>
+              <TableBody>
+                {filteredExpenses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                          <CalendarOff className="h-6 w-6 opacity-40" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-primary">No product expenses found</p>
+                          <p className="text-sm">Try adjusting your date range or adding a new record.</p>
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                ) : (
+                  filteredExpenses.map((expense) => (
+                    <TableRow key={expense.id} className="hover:bg-muted/10 transition-colors group">
+                      <TableCell className="px-4">
+                        <Checkbox 
+                          checked={selectedIds.includes(expense.id)}
+                          onCheckedChange={() => toggleSelectOne(expense.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="text-muted-foreground">{expense.productDetails}</TableCell>
+                      <TableCell className="text-right font-mono font-bold text-destructive">Rs {expense.amount.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ProductExpenseForm
+                            expense={expense}
+                            trigger={
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete the product expense record. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteProductExpense(expense.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+              {filteredExpenses.length > 0 && (
+                <TableFooter>
+                  <TableRow className="bg-muted/40 font-bold border-t-2">
+                    <TableCell colSpan={3} className="text-right text-primary uppercase tracking-tight">Total Period Expenditure</TableCell>
+                    <TableCell className="text-right font-black text-destructive text-lg">Rs {totalExpense.toLocaleString()}</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableFooter>
               )}
-            </TableBody>
-            {filteredExpenses.length > 0 && (
-              <TableFooter>
-                <TableRow className="bg-muted/40 font-bold border-t-2">
-                  <TableCell colSpan={2} className="text-right text-primary uppercase tracking-tight">Total Period Expenditure</TableCell>
-                  <TableCell className="text-right font-black text-destructive text-lg">Rs {totalExpense.toLocaleString()}</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableFooter>
-            )}
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
