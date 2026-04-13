@@ -50,8 +50,11 @@ export function FinancialDashboard() {
         return getMonth(d) === monthIndex && getYear(d) === year;
       });
 
-      const revenue = monthBookings.reduce((s, b) => s + b.totalAmount, 0);
-      const bookingExpenses = monthBookings.reduce((s, b) => s + b.expenseAmount, 0);
+      // Only include COMPLETED bookings in financial calculations
+      const completedBookings = monthBookings.filter(b => b.status === 'completed');
+
+      const revenue = completedBookings.reduce((s, b) => s + b.totalAmount, 0);
+      const bookingExpenses = completedBookings.reduce((s, b) => s + b.expenseAmount, 0);
       const totalDailyExpenses = monthDailyExpenses.reduce((s, e) => s + e.amount, 0);
       const totalProductExpenses = monthProductExpenses.reduce((s, e) => s + e.amount, 0);
 
@@ -59,7 +62,7 @@ export function FinancialDashboard() {
       
       return {
         period: format(month, 'MMM yyyy'),
-        totalBookings: monthBookings.length,
+        totalBookings: completedBookings.length, // Show count of completed services
         totalRevenue: revenue,
         totalExpenses: totalExpenses,
         netProfit: revenue - totalExpenses,
@@ -87,8 +90,11 @@ export function FinancialDashboard() {
         return d >= yearStart && d <= yearEnd;
     });
 
-    const revenue = yearBookings.reduce((s, b) => s + b.totalAmount, 0);
-    const bookingExpenses = yearBookings.reduce((s, b) => s + b.expenseAmount, 0);
+    // Only include COMPLETED bookings in financial calculations
+    const completedYearBookings = yearBookings.filter(b => b.status === 'completed');
+
+    const revenue = completedYearBookings.reduce((s, b) => s + b.totalAmount, 0);
+    const bookingExpenses = completedYearBookings.reduce((s, b) => s + b.expenseAmount, 0);
     const totalDailyExpenses = yearDailyExpenses.reduce((s, e) => s + e.amount, 0);
     const totalProductExpenses = yearProductExpenses.reduce((s, e) => s + e.amount, 0);
 
@@ -96,7 +102,7 @@ export function FinancialDashboard() {
 
     return {
       period: format(now, 'yyyy'),
-      totalBookings: yearBookings.length,
+      totalBookings: completedYearBookings.length,
       totalRevenue: revenue,
       totalExpenses: totalExpenses,
       netProfit: revenue - totalExpenses,
@@ -110,7 +116,7 @@ export function FinancialDashboard() {
         reportType: 'monthly',
         reportPeriod: 'Last 6 Months',
         financialData: monthlyReport,
-        additionalNotes: 'Analysis requested for current business trend performance. Total expenses include booking-specific expenses, daily operational costs, and product purchase costs.',
+        additionalNotes: 'Analysis requested for current business trend performance. Total expenses include booking-specific expenses for completed services, daily operational costs, and product purchase costs. Revenue is strictly based on completed services.',
       });
       setAnalysis(result);
     } catch (error) {
@@ -138,7 +144,7 @@ export function FinancialDashboard() {
 
     autoTable(doc, {
       startY: 40,
-      head: [['Period', 'Bookings', 'Revenue', 'Total Expenses', 'Net Profit']],
+      head: [['Period', 'Completed Services', 'Revenue', 'Total Expenses', 'Net Profit']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillStyle: 'f', fillColor: [33, 53, 85] },
@@ -167,7 +173,7 @@ export function FinancialDashboard() {
       <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-xl border border-border/50 shadow-sm">
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-sm font-bold text-primary uppercase tracking-wider">Report Downloads</h3>
-          <p className="text-xs text-muted-foreground">Export your financial data to PDF format.</p>
+          <p className="text-xs text-muted-foreground">Export your financial data to PDF format. Revenue includes completed services only.</p>
         </div>
         <div className="flex gap-3">
           <Button 
@@ -198,7 +204,7 @@ export function FinancialDashboard() {
               <TrendingUp className="h-5 w-5 text-primary" />
               Monthly Revenue vs Profit
             </CardTitle>
-            <CardDescription>Visual summary of the last 6 months</CardDescription>
+            <CardDescription>Visual summary (Completed Services only)</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ChartContainer config={chartConfig}>
@@ -276,7 +282,7 @@ export function FinancialDashboard() {
               <thead>
                 <tr className="bg-muted/50 border-b">
                   <th className="p-3 text-left">Period</th>
-                  <th className="p-3 text-center">Bookings</th>
+                  <th className="p-3 text-center">Completed</th>
                   <th className="p-3 text-right">Revenue</th>
                   <th className="p-3 text-right">Total Expenses</th>
                   <th className="p-3 text-right">Net Profit</th>

@@ -57,8 +57,11 @@ export function StatCards() {
       }
     });
     
-    const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + b.totalAmount, 0);
-    const thisMonthBookingExpenses = thisMonthBookings.reduce((sum, b) => sum + b.expenseAmount, 0);
+    // Only include COMPLETED bookings in Revenue and Booking Expenses
+    const completedMonthBookings = thisMonthBookings.filter(b => b.status === 'completed');
+    
+    const thisMonthRevenue = completedMonthBookings.reduce((sum, b) => sum + b.totalAmount, 0);
+    const thisMonthBookingExpenses = completedMonthBookings.reduce((sum, b) => sum + b.expenseAmount, 0);
     
     const thisMonthDailyExpenses = expenses.filter(e => {
       try {
