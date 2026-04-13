@@ -1,6 +1,6 @@
 'use client';
 
-import { type LucideIcon, TrendingUp, CalendarDays, CheckCircle, Clock } from 'lucide-react';
+import { type LucideIcon, CalendarDays, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { useMemo, useState, useEffect } from 'react';
@@ -29,16 +29,12 @@ export function StatCards() {
       return [
         { label: "Today's Appointments", value: '...', icon: CalendarDays, color: 'text-purple-600', bg: 'bg-purple-50', borderColor: 'border-purple-100' },
         { label: "Today's Completed", value: '...', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-        { label: 'Total Expected Revenue', value: '...', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50', borderColor: 'border-green-100' },
-        { label: 'Total Pending Balance', value: '...', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', borderColor: 'border-orange-100' },
       ];
     }
 
     const todayStr = format(now, 'yyyy-MM-dd');
     const todaysCount = bookings.filter(b => b.date === todayStr).length;
     const todaysCompletedCount = bookings.filter(b => b.date === todayStr && b.status === 'completed').length;
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
-    const pendingBalance = bookings.reduce((sum, b) => sum + b.balanceAmount, 0);
 
     return [
       {
@@ -57,27 +53,11 @@ export function StatCards() {
         bg: 'bg-emerald-50/50',
         borderColor: 'border-emerald-100/50',
       },
-      {
-        label: 'Total Expected Revenue',
-        value: `Rs ${totalRevenue.toLocaleString()}`,
-        icon: TrendingUp,
-        color: 'text-green-600',
-        bg: 'bg-green-50/50',
-        borderColor: 'border-green-100/50',
-      },
-      {
-        label: 'Total Pending Balance',
-        value: `Rs ${pendingBalance.toLocaleString()}`,
-        icon: Clock,
-        color: 'text-orange-600',
-        bg: 'bg-orange-50/50',
-        borderColor: 'border-orange-100/50',
-      },
     ];
   }, [bookings, now]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2">
       {stats.map((stat) => (
         <Card key={stat.label} className={cn("border bg-card shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden", stat.borderColor)}>
           <CardContent className="p-6">
