@@ -58,7 +58,7 @@ export function ServiceTab() {
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Professional Care & Beauty Services', 74, 21, { align: 'center' });
+    doc.text('Professional Care & Beauty Salon', 74, 21, { align: 'center' });
     
     doc.setFillColor(255, 255, 255, 0.2);
     doc.rect(40, 25, 68, 6, 'F');
