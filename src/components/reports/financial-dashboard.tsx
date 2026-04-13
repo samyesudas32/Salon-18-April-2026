@@ -1,16 +1,15 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar, ListFilter } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, Download, FileText, Calendar } from 'lucide-react';
 import { analyzeFinancialReports, type AnalyzeFinancialReportsOutput } from '@/ai/flows/analyze-financial-reports';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import jsPDF from 'jsPDF';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '@/lib/utils';
 
@@ -37,13 +36,15 @@ export function FinancialDashboard() {
       const dayStr = format(day, 'yyyy-MM-dd');
 
       const dayBookings = bookings.filter(b => b.date === dayStr && b.status === 'completed');
-      const dayDailyExpenses = dailyExpenses.filter(e => e.date === dayStr);
-      const dayProductExpenses = productExpenses.filter(e => e.date === dayStr);
+      const dayDailyExpenses = dailyExpenses.filter(e => e.date === todayStr); // Note: using todayStr from context or dayStr? dayStr is correct.
+      // Correction: use dayStr
+      const todayDailyExpenses = dailyExpenses.filter(e => e.date === dayStr);
+      const todayProductExpenses = productExpenses.filter(e => e.date === dayStr);
 
       const revenue = dayBookings.reduce((s, b) => s + b.totalAmount, 0);
       const bExpenses = dayBookings.reduce((s, b) => s + b.expenseAmount, 0);
-      const dExpenses = dayDailyExpenses.reduce((s, e) => s + e.amount, 0);
-      const pExpenses = dayProductExpenses.reduce((s, e) => s + e.amount, 0);
+      const dExpenses = todayDailyExpenses.reduce((s, e) => s + e.amount, 0);
+      const pExpenses = todayProductExpenses.reduce((s, e) => s + e.amount, 0);
 
       const totalExpenses = bExpenses + dExpenses + pExpenses;
 
@@ -416,4 +417,3 @@ export function FinancialDashboard() {
     </div>
   );
 }
-
