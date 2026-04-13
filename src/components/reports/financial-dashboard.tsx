@@ -36,8 +36,6 @@ export function FinancialDashboard() {
       const dayStr = format(day, 'yyyy-MM-dd');
 
       const dayBookings = bookings.filter(b => b.date === dayStr && b.status === 'completed');
-      const dayDailyExpenses = dailyExpenses.filter(e => e.date === todayStr); // Note: using todayStr from context or dayStr? dayStr is correct.
-      // Correction: use dayStr
       const todayDailyExpenses = dailyExpenses.filter(e => e.date === dayStr);
       const todayProductExpenses = productExpenses.filter(e => e.date === dayStr);
 
