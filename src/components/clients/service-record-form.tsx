@@ -251,7 +251,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   )}
                 />
                 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-2 max-w-[200px]">
                   <FormLabel>Duration</FormLabel>
                   <div className="flex gap-2">
                     <FormField
@@ -262,7 +262,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                           <FormControl>
                             <div className="relative">
                               <Hourglass className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                              <Input type="number" placeholder="Value" className="pl-9 h-10" {...field} />
+                              <Input type="number" placeholder="0" className="pl-9 h-10" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -273,7 +273,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                       control={form.control}
                       name="durationUnit"
                       render={({ field }) => (
-                        <FormItem className="w-[100px]">
+                        <FormItem className="w-[85px]">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-10">
