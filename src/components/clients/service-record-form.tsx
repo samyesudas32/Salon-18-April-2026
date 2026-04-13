@@ -22,6 +22,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/app/lib/store';
 import { ServiceRecord } from '@/app/lib/types';
@@ -34,7 +41,8 @@ const formSchema = z.object({
   workType: z.string().min(2, 'Service type is required'),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
-  duration: z.string().optional(),
+  durationValue: z.string().optional(),
+  durationUnit: z.string().default('mins'),
   staffName: z.string().optional(),
   totalAmount: z.coerce.number().min(0),
   advanceAmount: z.coerce.number().min(0),
@@ -58,7 +66,8 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       workType: record.workType,
       date: record.date,
       time: record.time,
-      duration: record.duration || '',
+      durationValue: record.duration?.split(' ')[0] || '',
+      durationUnit: record.duration?.split(' ')[1] || 'mins',
       staffName: record.staffName || '',
       totalAmount: record.totalAmount || 0,
       advanceAmount: record.advanceAmount || 0,
@@ -68,13 +77,15 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
   useEffect(() => {
     if (open) {
+      const parts = record.duration?.split(' ') || [];
       form.reset({
         clientName: record.clientName,
         phoneNumber: record.phoneNumber || '',
         workType: record.workType,
         date: record.date,
         time: record.time,
-        duration: record.duration || '',
+        durationValue: parts[0] || '',
+        durationUnit: parts[1] || 'mins',
         staffName: record.staffName || '',
         totalAmount: record.totalAmount || 0,
         advanceAmount: record.advanceAmount || 0,
@@ -90,9 +101,14 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const duration = values.durationValue ? `${values.durationValue} ${values.durationUnit}` : '';
+    
+    // Create updates object excluding UI-only fields
+    const { durationValue, durationUnit, ...rest } = values;
+    
     updateServiceRecord(record.id, {
-      ...values,
-      duration: values.duration || '',
+      ...rest,
+      duration,
       staffName: values.staffName || '',
     });
     setOpen(false);
@@ -110,7 +126,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
         <DialogHeader className="pb-2 border-b">
           <DialogTitle className="text-2xl font-headline font-bold text-primary flex items-center gap-2">
-            <Edit className="h-6 w-6" />
+            <EditIcon className="h-6 w-6" />
             Edit Service Delivery Record
           </DialogTitle>
         </DialogHeader>
@@ -234,22 +250,47 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Hourglass className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="e.g. 45 mins" className="pl-9 h-10" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Duration</FormLabel>
+                  <div className="flex gap-2">
+                    <FormField
+                      control={form.control}
+                      name="durationValue"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <div className="relative">
+                              <Hourglass className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input type="number" placeholder="Value" className="pl-9 h-10" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="durationUnit"
+                      render={({ field }) => (
+                        <FormItem className="w-[100px]">
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="mins">Mins</SelectItem>
+                              <SelectItem value="hrs">Hrs</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -345,6 +386,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
   );
 }
 
-const Edit = ({ className }: { className?: string }) => (
+// Local helper component for the edit icon
+const EditIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22h6-6Z"/><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
 );
