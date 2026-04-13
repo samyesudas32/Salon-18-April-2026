@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -22,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function ServiceTab() {
   const { serviceRecords, deleteServiceRecord } = useApp();
@@ -42,7 +42,7 @@ export function ServiceTab() {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [80, 150] // Receipt style format
+      format: [80, 150] // Receipt style format for 80mm printers
     });
 
     doc.setFontSize(14);
