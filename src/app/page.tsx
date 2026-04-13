@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const { 
     showStats, 
     showRecentBookings, 
-    showCompletedHistory,
     showServiceSection, 
     showExpenses, 
     showProductExpenses,
@@ -73,12 +72,6 @@ export default function DashboardPage() {
                 onCheckedChange={() => toggleDashboardSection('bookings')}
               >
                 Show All Bookings
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={showCompletedHistory}
-                onCheckedChange={() => toggleDashboardSection('completedHistory')}
-              >
-                Show Completed History
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1.5">
@@ -207,29 +200,6 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Completed History Section */}
-        {showCompletedHistory && (
-          <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
-            <CardHeader className="bg-card flex flex-row items-center justify-between border-b border-border/40 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
-                  <History className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-headline font-bold text-primary">Completed History</CardTitle>
-                  <CardDescription>Summary of your successfully delivered services</CardDescription>
-                </div>
-              </div>
-              <Link href="/bookings/completed" className="text-sm font-bold text-accent flex items-center gap-1.5 hover:underline group">
-                Full History <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </CardHeader>
-            <CardContent className="p-0">
-              <BookingTable filterStatus="completed" hideSchedule={true} />
-            </CardContent>
-          </Card>
-        )}
-
         {/* Daily Expenses Section */}
         {showExpenses && (
           <Card className="border-none shadow-xl shadow-primary/5 overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
@@ -277,7 +247,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {!showStats && !showRecentBookings && !showCompletedHistory && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && !showDailyProfit && (
+      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && !showDailyProfit && (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed border-border/60 animate-in fade-in zoom-in duration-500">
           <Layout className="h-12 w-12 opacity-20 mb-4" />
           <p className="text-lg font-medium">Dashboard is empty</p>
