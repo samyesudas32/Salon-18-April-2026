@@ -87,26 +87,19 @@ export function ServiceTab() {
       headStyles: { fillColor: [33, 53, 85], textColor: [255, 255, 255] },
     });
 
-    // Professional Bill Section
+    // Simplified Professional Bill Section
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     
     doc.setDrawColor(200, 200, 200);
     doc.line(80, finalY, 133, finalY);
     
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Total Service Charge:', 85, finalY + 8);
-    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 8, { align: 'right' });
-    
-    doc.text('Advance Amount Paid:', 85, finalY + 15);
-    doc.text(`Rs ${record.advanceAmount?.toLocaleString() || '0'}`, 133, finalY + 15, { align: 'right' });
-    
-    doc.line(80, finalY + 18, 133, finalY + 18);
-    
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(200, 100, 0); 
-    doc.text('BALANCE PAYABLE:', 85, finalY + 25);
-    doc.text(`Rs ${record.balanceAmount?.toLocaleString() || '0'}`, 133, finalY + 25, { align: 'right' });
+    doc.setTextColor(33, 53, 85);
+    doc.text('TOTAL SERVICE CHARGE:', 80, finalY + 10);
+    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 10, { align: 'right' });
+    
+    doc.line(80, finalY + 14, 133, finalY + 14);
 
     // Footer
     doc.setTextColor(150, 150, 150);
@@ -133,7 +126,7 @@ export function ServiceTab() {
               </CardDescription>
             </div>
           </div>
-          <div className="relative w-full max-w-sm">
+          <div className="relative w-full max-sm:max-w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search by client, service, or staff..." 
@@ -153,7 +146,7 @@ export function ServiceTab() {
                 <TableHead className="font-bold">Schedule</TableHead>
                 <TableHead className="font-bold">Service Details</TableHead>
                 <TableHead className="font-bold">Attending Staff</TableHead>
-                <TableHead className="font-bold text-right">Balance Due</TableHead>
+                <TableHead className="font-bold text-right">Total Charge</TableHead>
                 <TableHead className="font-bold text-right px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -215,8 +208,8 @@ export function ServiceTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-col items-end">
-                        <span className="text-sm font-black text-orange-600">Rs {record.balanceAmount?.toLocaleString() || '0'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Pending</span>
+                        <span className="text-sm font-black text-primary">Rs {record.totalAmount?.toLocaleString() || '0'}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">Amount</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
