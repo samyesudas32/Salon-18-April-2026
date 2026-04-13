@@ -3,8 +3,8 @@
 import { useApp } from '@/app/lib/store';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { format, isSameDay, parseISO } from 'date-fns';
-import { ArrowDownRight, ArrowUpRight, Banknote, ShoppingBag, Wallet, TrendingUp } from 'lucide-react';
+import { format } from 'date-fns';
+import { ArrowDownRight, Banknote, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function DailyProfitOverview() {
@@ -28,9 +28,6 @@ export function DailyProfitOverview() {
 
     return {
       revenue,
-      bookingExpenses,
-      dailyCosts,
-      productCosts,
       totalExpenses,
       netProfit,
     };
@@ -60,28 +57,9 @@ export function DailyProfitOverview() {
             <ArrowDownRight className="h-4 w-4 text-destructive opacity-70" />
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="pb-6">
           <div className="text-2xl font-black text-destructive">Rs {metrics.totalExpenses.toLocaleString()}</div>
-          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40">
-            <div className="space-y-0.5">
-              <p className="text-[9px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                <Banknote className="h-2 w-2" /> Service
-              </p>
-              <p className="text-[11px] font-bold">Rs {metrics.bookingExpenses}</p>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[9px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                <Wallet className="h-2 w-2" /> Daily
-              </p>
-              <p className="text-[11px] font-bold">Rs {metrics.dailyCosts}</p>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[9px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                <ShoppingBag className="h-2 w-2" /> Stock
-              </p>
-              <p className="text-[11px] font-bold">Rs {metrics.productCosts}</p>
-            </div>
-          </div>
+          <p className="text-xs text-muted-foreground mt-1">Total business costs for today</p>
         </CardContent>
       </Card>
 
