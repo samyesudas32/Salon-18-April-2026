@@ -49,28 +49,28 @@ export function ServiceTab() {
 
     // 1. Header with branding
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
-    doc.rect(0, 0, 148, 35, 'F');
+    doc.rect(0, 0, 148, 40, 'F'); // Increased height slightly
     
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('SALON OF GUZELLIK', 74, 15, { align: 'center' });
+    doc.setFontSize(24); // Increased from 20
+    doc.text('SALON OF GUZELLIK', 74, 18, { align: 'center' });
     
-    doc.setFontSize(9);
+    doc.setFontSize(11); // Increased from 9
     doc.setFont('helvetica', 'normal');
-    doc.text('Professional Beauty Care & Salon', 74, 21, { align: 'center' });
+    doc.text('Professional Beauty Care & Salon', 74, 25, { align: 'center' });
     
     doc.setFillColor(255, 255, 255, 0.2);
-    doc.rect(40, 25, 68, 6, 'F');
-    doc.setFontSize(10);
+    doc.rect(34, 29, 80, 7, 'F'); // Adjusted box
+    doc.setFontSize(12); // Increased from 10
     doc.setFont('helvetica', 'bold');
-    doc.text('SERVICE DELIVERY SLIP', 74, 29, { align: 'center' });
+    doc.text('SERVICE DELIVERY SLIP', 74, 34, { align: 'center' });
 
     // 2. Info Grid Layout
-    let currentY = 45;
+    let currentY = 50; // Adjusted starting Y
     
     doc.setTextColor(100, 100, 100);
-    doc.setFontSize(8);
+    doc.setFontSize(10); // Increased from 8
     doc.setFont('helvetica', 'bold');
     doc.text('CLIENT DETAILS', 15, currentY);
     doc.text('APPOINTMENT INFO', 85, currentY);
@@ -78,21 +78,21 @@ export function ServiceTab() {
     doc.setDrawColor(230, 230, 230);
     doc.line(15, currentY + 2, 133, currentY + 2);
 
-    currentY += 8;
+    currentY += 10;
 
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setFontSize(10);
+    doc.setFontSize(11); // Increased from 10
     doc.setFont('helvetica', 'bold');
     doc.text(record.clientName, 15, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(record.phoneNumber || 'No Phone provided', 15, currentY + 5);
+    doc.text(record.phoneNumber || 'No Phone provided', 15, currentY + 6);
     
     doc.setFont('helvetica', 'bold');
     doc.text(format(new Date(record.date), 'MMM dd, yyyy'), 85, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Time: ${record.time}`, 85, currentY + 5);
+    doc.text(`Time: ${record.time}`, 85, currentY + 6);
 
-    currentY += 15;
+    currentY += 18;
 
     // 3. Service Table
     autoTable(doc, {
@@ -103,8 +103,8 @@ export function ServiceTab() {
       ],
       margin: { left: 15, right: 15 },
       styles: { 
-        fontSize: 9, 
-        cellPadding: 4,
+        fontSize: 10, // Increased from 9
+        cellPadding: 5,
         valign: 'middle',
         lineColor: [240, 240, 240],
         lineWidth: 0.1,
@@ -121,26 +121,26 @@ export function ServiceTab() {
 
     // 4. Financial Summary (Only Total Charge as requested)
     const finalY = (doc as any).lastAutoTable.finalY + 15;
-    const boxWidth = 70;
+    const boxWidth = 80; // Slightly wider
     const startX = 133 - boxWidth;
 
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.8);
     doc.line(startX, finalY, 133, finalY); // Top emphasis line
     
-    doc.setFontSize(11);
+    doc.setFontSize(13); // Increased from 11
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     
-    doc.text('TOTAL SERVICE CHARGE', startX, finalY + 8);
-    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 8, { align: 'right' });
+    doc.text('TOTAL SERVICE CHARGE', startX, finalY + 10);
+    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 10, { align: 'right' });
 
-    doc.line(startX, finalY + 12, 133, finalY + 12); // Bottom emphasis line
+    doc.line(startX, finalY + 15, 133, finalY + 15); // Bottom emphasis line
 
     // 5. Footer with Address and Phone
-    const footerY = 178;
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(7.5);
+    const footerY = 175; // Adjusted slightly up to fit bigger text
+    doc.setTextColor(60, 60, 60); // Darker for better visibility
+    doc.setFontSize(10); // Significantly increased from 7.5
     doc.setFont('helvetica', 'normal');
     
     const addressLine1 = "West of Iron Bridge, CCSB Rd, near Merino Fabrics,";
@@ -148,19 +148,19 @@ export function ServiceTab() {
     const phoneLine = "Ph: 7025 80 1010, 755 88 74175";
     
     doc.text(addressLine1, 74, footerY, { align: 'center' });
-    doc.text(addressLine2, 74, footerY + 3.5, { align: 'center' });
+    doc.text(addressLine2, 74, footerY + 4.5, { align: 'center' });
     
     doc.setFont('helvetica', 'bold');
-    doc.text(phoneLine, 74, footerY + 8, { align: 'center' });
+    doc.text(phoneLine, 74, footerY + 10, { align: 'center' });
 
-    doc.setTextColor(160, 160, 160);
-    doc.setFontSize(8.5);
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(12); // Increased from 8.5
     doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for visiting Salon of Guzellik!', 74, footerY + 16, { align: 'center' });
+    doc.text('Thank you for visiting Salon of Guzellik!', 74, footerY + 20, { align: 'center' });
     
-    doc.setFontSize(6);
+    doc.setFontSize(7); // Slightly bigger ref ID
     doc.setFont('helvetica', 'normal');
-    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, footerY + 21, { align: 'center' });
+    doc.text(`Ref ID: ${record.id.toUpperCase()}`, 74, footerY + 26, { align: 'center' });
 
     doc.save(`Service_Slip_${record.clientName.replace(/\s+/g, '_')}.pdf`);
   };
