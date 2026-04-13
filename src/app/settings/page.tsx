@@ -9,6 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function SettingsPage() {
   const { updateAdminPassword, businessName, businessShortName, adminName, updateBusinessIdentity } = useApp();
@@ -33,17 +39,30 @@ export default function SettingsPage() {
     setTempAdminName(adminName);
   }, [businessName, businessShortName, adminName]);
 
-  const handleUpdateIdentity = (e: React.FormEvent) => {
+  const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tempBusinessName.trim() || !tempShortName.trim() || !tempAdminName.trim()) {
+    if (!tempBusinessName.trim() || !tempShortName.trim()) {
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: "Business name, logo initial, and administrator name cannot be empty.",
+        description: "Business name and logo initial cannot be empty.",
       });
       return;
     }
-    updateBusinessIdentity(tempBusinessName, tempShortName, tempAdminName);
+    updateBusinessIdentity(tempBusinessName, tempShortName, adminName);
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tempAdminName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Administrator name cannot be empty.",
+      });
+      return;
+    }
+    updateBusinessIdentity(businessName, businessShortName, tempAdminName);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -92,25 +111,29 @@ export default function SettingsPage() {
         <p className="text-muted-foreground mt-1 text-lg">Manage your business branding and security preferences.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Branding Settings */}
-        <Card className="border-none shadow-sm flex flex-col">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Business Identity</CardTitle>
+      <Accordion type="single" collapsible className="w-full space-y-4">
+        {/* Business Identity Item */}
+        <AccordionItem value="business-identity" className="border rounded-xl bg-card shadow-sm px-6">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col">
+                <p className="font-bold text-lg text-primary leading-none mb-1">Business Identity</p>
+                <p className="text-sm text-muted-foreground font-normal">Update your salon name and logo branding.</p>
+              </div>
             </div>
-            <CardDescription>Update how your salon and profile appear on the site.</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleUpdateIdentity} className="flex-1 flex flex-col">
-            <CardContent className="space-y-4 flex-1">
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 pb-8">
+            <form onSubmit={handleSaveBranding} className="space-y-5 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="businessName">Full Business Name</Label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="businessName"
-                    className="pl-10"
+                    className="pl-10 h-11"
                     value={tempBusinessName}
                     onChange={(e) => setTempBusinessName(e.target.value)}
                     required
@@ -123,49 +146,71 @@ export default function SettingsPage() {
                   <Type className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="businessShortName"
-                    className="pl-10"
+                    className="pl-10 h-11"
                     maxLength={3}
                     value={tempShortName}
                     onChange={(e) => setTempShortName(e.target.value.toUpperCase())}
                     required
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">This letter appears in the sidebar and loading screen.</p>
               </div>
+              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
+                Save Branding Changes
+              </Button>
+            </form>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Administrator Profile Item */}
+        <AccordionItem value="admin-profile" className="border rounded-xl bg-card shadow-sm px-6">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <User className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col">
+                <p className="font-bold text-lg text-primary leading-none mb-1">Administrator Profile</p>
+                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name displayed in the dashboard.</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 pb-8">
+            <form onSubmit={handleSaveProfile} className="space-y-5 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="adminName">Administrator Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="adminName"
-                    className="pl-10"
+                    className="pl-10 h-11"
                     value={tempAdminName}
                     onChange={(e) => setTempAdminName(e.target.value)}
                     required
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">This name appears in the top-right header.</p>
               </div>
-            </CardContent>
-            <CardFooter className="pt-4">
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Save Branding & Profile
+              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
+                Update Profile Name
               </Button>
-            </CardFooter>
-          </form>
-        </Card>
+            </form>
+          </AccordionContent>
+        </AccordionItem>
 
-        {/* Security Settings */}
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Security</CardTitle>
+        {/* Security Item */}
+        <AccordionItem value="security" className="border rounded-xl bg-card shadow-sm px-6">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col">
+                <p className="font-bold text-lg text-primary leading-none mb-1">Security & Password</p>
+                <p className="text-sm text-muted-foreground font-normal">Change your secure administrative login credentials.</p>
+              </div>
             </div>
-            <CardDescription>Change your administrative password.</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleUpdatePassword}>
-            <CardContent className="space-y-4">
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 pb-8">
+            <form onSubmit={handleUpdatePassword} className="space-y-5 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="currentPass">Current Password</Label>
                 <div className="relative">
@@ -173,7 +218,7 @@ export default function SettingsPage() {
                   <Input
                     id="currentPass"
                     type={showCurrent ? "text" : "password"}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                     value={currentPass}
                     onChange={(e) => setCurrentPass(e.target.value)}
                     required
@@ -181,7 +226,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors"
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
                   >
                     {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -194,7 +239,7 @@ export default function SettingsPage() {
                   <Input
                     id="newPass"
                     type={showNew ? "text" : "password"}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                     value={newPass}
                     onChange={(e) => setNewPass(e.target.value)}
                     required
@@ -202,7 +247,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowNew(!showNew)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors"
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
                   >
                     {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -215,7 +260,7 @@ export default function SettingsPage() {
                   <Input
                     id="confirmPass"
                     type={showConfirm ? "text" : "password"}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                     value={confirmPass}
                     onChange={(e) => setConfirmPass(e.target.value)}
                     required
@@ -223,21 +268,19 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors"
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
                   >
                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="pt-4">
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Update Password
+              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
+                Update Secure Password
               </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+            </form>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
