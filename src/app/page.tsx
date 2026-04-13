@@ -8,23 +8,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { ArrowUpRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useApp } from '@/app/lib/store';
 
 export default function DashboardPage() {
-  const { adminName } = useApp();
-
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-12">
-      {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-headline font-bold text-primary tracking-tight">
-            Hello, {adminName.split(' ')[0]}!
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Here's a snapshot of your salon's performance today.
-          </p>
-        </div>
+      {/* Header section with action button */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">
+          Dashboard Overview
+        </h1>
         <div className="flex items-center gap-3">
           <BookingForm trigger={
             <Button className="gap-2 shadow-lg shadow-primary/20 h-11 px-6">
