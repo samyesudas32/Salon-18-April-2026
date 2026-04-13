@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports';
+export type DashboardSection = 'stats' | 'bookings' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports' | 'dailyProfit';
 
 interface AppContextType {
   bookings: Booking[];
@@ -43,6 +43,7 @@ interface AppContextType {
   showExpenses: boolean;
   showProductExpenses: boolean;
   showReports: boolean;
+  showDailyProfit: boolean;
   toggleDashboardSection: (section: DashboardSection) => void;
   // Auth state
   isLoggedIn: boolean;
@@ -79,6 +80,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [showExpenses, setShowExpenses] = useState<boolean>(false);
   const [showProductExpenses, setShowProductExpenses] = useState<boolean>(false);
   const [showReports, setShowReports] = useState<boolean>(false);
+  const [showDailyProfit, setShowDailyProfit] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -113,6 +115,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedShowExpenses = localStorage.getItem('showExpenses');
       const storedShowProductExpenses = localStorage.getItem('showProductExpenses');
       const storedShowReports = localStorage.getItem('showReports');
+      const storedShowDailyProfit = localStorage.getItem('showDailyProfit');
       
       if (storedStatus) setIsLoggedIn(true);
       if (storedPass) setAdminPassword(storedPass);
@@ -126,6 +129,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedShowExpenses !== null) setShowExpenses(storedShowExpenses === 'true');
       if (storedShowProductExpenses !== null) setShowProductExpenses(storedShowProductExpenses === 'true');
       if (storedShowReports !== null) setShowReports(storedShowReports === 'true');
+      if (storedShowDailyProfit !== null) setShowDailyProfit(storedShowDailyProfit === 'true');
 
       if (Array.isArray(storedBookings)) setBookings(storedBookings);
       if (Array.isArray(storedServiceRecords)) setServiceRecords(storedServiceRecords);
@@ -155,11 +159,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('showExpenses', String(showExpenses));
         localStorage.setItem('showProductExpenses', String(showProductExpenses));
         localStorage.setItem('showReports', String(showReports));
+        localStorage.setItem('showDailyProfit', String(showDailyProfit));
       } catch (e) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, adminName, showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -201,6 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       case 'expenses': setShowExpenses(!showExpenses); newState = !showExpenses; break;
       case 'productExpenses': setShowProductExpenses(!showProductExpenses); newState = !showProductExpenses; break;
       case 'reports': setShowReports(!showReports); newState = !showReports; break;
+      case 'dailyProfit': setShowDailyProfit(!showDailyProfit); newState = !showDailyProfit; break;
     }
     
     const sectionName = section.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -341,7 +347,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, adminName, updateBusinessIdentity,
-      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, toggleDashboardSection,
+      showStats, showRecentBookings, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword
     }}>
       {children}

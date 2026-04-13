@@ -7,8 +7,9 @@ import { ExpenseTable } from '@/components/expenses/expense-table';
 import { ProductExpenseTable } from '@/components/product-expenses/product-expense-table';
 import { ServiceTab } from '@/components/clients/service-tab';
 import { FinancialDashboard } from '@/components/reports/financial-dashboard';
+import { DailyProfitOverview } from '@/components/dashboard/daily-profit-overview';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText } from 'lucide-react';
+import { ArrowUpRight, Plus, Settings2, Layout, Briefcase, Wallet, ShoppingBag, FileText, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/app/lib/store';
@@ -29,6 +30,7 @@ export default function DashboardPage() {
     showExpenses, 
     showProductExpenses,
     showReports,
+    showDailyProfit,
     toggleDashboardSection 
   } = useApp();
 
@@ -58,6 +60,12 @@ export default function DashboardPage() {
                 onCheckedChange={() => toggleDashboardSection('stats')}
               >
                 Business Metrics
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={showDailyProfit}
+                onCheckedChange={() => toggleDashboardSection('dailyProfit')}
+              >
+                Daily Profit Overview
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={showRecentBookings}
@@ -114,6 +122,24 @@ export default function DashboardPage() {
 
       {/* Conditional Dashboard Sections */}
       <div className="space-y-8">
+        {/* Daily Profit Overview Section */}
+        {showDailyProfit && (
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+             <div className="flex items-center justify-between mb-4 px-2">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-headline font-bold text-primary">Daily Profit Overview</h2>
+                  <p className="text-sm text-muted-foreground">Today's financial breakdown and net result</p>
+                </div>
+              </div>
+            </div>
+            <DailyProfitOverview />
+          </div>
+        )}
+
         {/* Service Section Summary */}
         {showServiceSection && (
           <div className="animate-in slide-in-from-bottom-4 duration-500">
@@ -221,7 +247,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && (
+      {!showStats && !showRecentBookings && !showServiceSection && !showExpenses && !showProductExpenses && !showReports && !showDailyProfit && (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground bg-muted/20 rounded-3xl border border-dashed border-border/60 animate-in fade-in zoom-in duration-500">
           <Layout className="h-12 w-12 opacity-20 mb-4" />
           <p className="text-lg font-medium">Dashboard is empty</p>
