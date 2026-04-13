@@ -83,9 +83,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedPass = localStorage.getItem('adminPassword');
       
       const getSafeParsed = (key: string) => {
-        const item = localStorage.getItem(key);
-        if (!item || item === 'undefined' || item.trim() === '') return null;
         try {
+          const item = localStorage.getItem(key);
+          // Check for empty, null, or common non-JSON strings
+          if (!item || item === 'undefined' || item === 'null' || item.trim() === '') return null;
+          
+          // Basic check for JSON object or array structure
+          const trimmed = item.trim();
+          if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
+          
           return JSON.parse(item);
         } catch (e) {
           console.warn(`SafeParse: Failed to parse key "${key}"`, e);
@@ -293,7 +299,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">{businessShortName}</div>
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg animate-bounce">
+            {businessShortName}
+          </div>
           <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
             <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-sm font-medium">Initializing {businessName}...</p>
