@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Phone, Repeat, Briefcase, Search } from 'lucide-react';
+import { User, Phone, Repeat, Briefcase, Search, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const REGULAR_CUSTOMER_THRESHOLD = 3; // Min bookings to be considered a regular
 
@@ -44,6 +45,31 @@ export function RegularClientsList() {
     );
   }, [regularClients, searchTerm]);
 
+  const exportToCSV = () => {
+    const headers = ['Client Name', 'Phone Number', 'Total Bookings', 'Service History'];
+    const rows = filteredClients.map(client => [
+      client.name,
+      client.phone,
+      client.bookingCount.toString(),
+      Array.from(client.workTypes).join('; ')
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Regular_Clients_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card className="border-none shadow-sm">
       <CardHeader>
@@ -54,14 +80,26 @@ export function RegularClientsList() {
               Your most loyal clients with {REGULAR_CUSTOMER_THRESHOLD} or more bookings.
             </CardDescription>
           </div>
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search regulars..." 
-              className="pl-9 h-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search regulars..." 
+                className="pl-9 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
+              onClick={exportToCSV}
+              disabled={filteredClients.length === 0}
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export Regulars</span>
+            </Button>
           </div>
         </div>
       </CardHeader>
