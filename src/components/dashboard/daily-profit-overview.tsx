@@ -39,7 +39,7 @@ export function DailyProfitOverview() {
       <Card className="border-none shadow-sm bg-primary/5">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold text-primary tracking-wider">Daily Revenue</CardTitle>
+            <CardTitle className="text-sm font-bold text-primary tracking-wider">Daily Income</CardTitle>
             <Banknote className="h-4 w-4 text-primary opacity-70" />
           </div>
         </CardHeader>
