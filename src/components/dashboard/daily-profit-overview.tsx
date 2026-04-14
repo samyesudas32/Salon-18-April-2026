@@ -70,7 +70,7 @@ export function DailyProfitOverview() {
       )}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold tracking-wider text-white/90">Net Profit ( Daily )</CardTitle>
+            <CardTitle className="text-sm font-bold tracking-wider text-white/90">Daily Balance</CardTitle>
             {metrics.netProfit >= 0 ? <TrendingUp className="h-4 w-4 text-white" /> : <ArrowDownRight className="h-4 w-4 text-white" />}
           </div>
         </CardHeader>
