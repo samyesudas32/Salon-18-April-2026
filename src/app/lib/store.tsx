@@ -45,6 +45,7 @@ interface AppContextType {
   adminName: string;
   recoveryEmail: string;
   recoveryPhone: string;
+  isPhoneVerified: boolean;
   updateBusinessIdentity: (identity: {
     name?: string;
     shortName?: string;
@@ -54,6 +55,7 @@ interface AppContextType {
     admin?: string;
     recoveryEmail?: string;
     recoveryPhone?: string;
+    isPhoneVerified?: boolean;
   }) => void;
   // Dashboard Config
   showStats: boolean;
@@ -101,6 +103,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
   const [recoveryEmail, setRecoveryEmail] = useState<string>('soumya@example.com');
   const [recoveryPhone, setRecoveryPhone] = useState<string>('7025801010');
+  const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(false);
 
   // Recovery Simulation State (Simulating DB store for tokens)
   const [activeResetToken, setActiveResetToken] = useState<ResetToken | null>(null);
@@ -146,6 +149,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedAdminName = localStorage.getItem('adminName');
       const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
       const storedRecoveryPhone = localStorage.getItem('recoveryPhone');
+      const storedIsPhoneVerified = localStorage.getItem('isPhoneVerified');
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
@@ -166,6 +170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedAdminName) setAdminName(storedAdminName);
       if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
       if (storedRecoveryPhone) setRecoveryPhone(storedRecoveryPhone);
+      if (storedIsPhoneVerified !== null) setIsPhoneVerified(storedIsPhoneVerified === 'true');
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
@@ -202,6 +207,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('adminName', adminName);
         localStorage.setItem('recoveryEmail', recoveryEmail);
         localStorage.setItem('recoveryPhone', recoveryPhone);
+        localStorage.setItem('isPhoneVerified', String(isPhoneVerified));
         localStorage.setItem('adminPassword', adminPassword);
         
         localStorage.setItem('showStats', String(showStats));
@@ -216,7 +222,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone, isPhoneVerified, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -296,6 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     admin?: string;
     recoveryEmail?: string;
     recoveryPhone?: string;
+    isPhoneVerified?: boolean;
   }) => {
     if (identity.name !== undefined) setBusinessName(identity.name);
     if (identity.shortName !== undefined) setBusinessShortName(identity.shortName);
@@ -305,6 +312,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (identity.admin !== undefined) setAdminName(identity.admin);
     if (identity.recoveryEmail !== undefined) setRecoveryEmail(identity.recoveryEmail);
     if (identity.recoveryPhone !== undefined) setRecoveryPhone(identity.recoveryPhone);
+    if (identity.isPhoneVerified !== undefined) setIsPhoneVerified(identity.isPhoneVerified);
     
     toast({ title: "Profile Updated", description: "Identity and recovery settings saved." });
   };
@@ -460,7 +468,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, 
-      recoveryEmail, recoveryPhone, updateBusinessIdentity,
+      recoveryEmail, recoveryPhone, isPhoneVerified, updateBusinessIdentity,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword,
       initiatePasswordReset, resetPasswordWithToken, recoverUserId

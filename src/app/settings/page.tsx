@@ -7,14 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info, Smartphone, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 export default function SettingsPage() {
   const { 
@@ -27,6 +36,7 @@ export default function SettingsPage() {
     adminName, 
     recoveryEmail,
     recoveryPhone,
+    isPhoneVerified,
     updateBusinessIdentity 
   } = useApp();
   const { toast } = useToast();
@@ -48,6 +58,12 @@ export default function SettingsPage() {
   const [tempAdminName, setTempAdminName] = useState(adminName);
   const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
   const [tempRecoveryPhone, setTempRecoveryPhone] = useState(recoveryPhone);
+
+  // OTP Verification State
+  const [showOTPDialog, setShowOTPDialog] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [sentOTP, setSentOTP] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     setTempBusinessName(businessName);
@@ -89,11 +105,50 @@ export default function SettingsPage() {
       });
       return;
     }
+
+    // If phone changed, reset verification
+    const phoneChanged = tempRecoveryPhone !== recoveryPhone;
+
     updateBusinessIdentity({ 
       admin: tempAdminName,
       recoveryEmail: tempRecoveryEmail,
-      recoveryPhone: tempRecoveryPhone
+      recoveryPhone: tempRecoveryPhone,
+      isPhoneVerified: phoneChanged ? false : isPhoneVerified
     });
+  };
+
+  const handleStartVerification = () => {
+    if (!tempRecoveryPhone.trim()) {
+      toast({ variant: "destructive", title: "Missing Number", description: "Please enter a mobile number first." });
+      return;
+    }
+    
+    // Simulate sending OTP
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setSentOTP(code);
+    setShowOTPDialog(true);
+    
+    toast({
+      title: "OTP Sent Successfully",
+      description: `[PROTOTYPE] Verification code is: ${code}`,
+    });
+  };
+
+  const handleConfirmOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsVerifying(true);
+
+    setTimeout(() => {
+      if (otpValue === sentOTP) {
+        updateBusinessIdentity({ isPhoneVerified: true });
+        setShowOTPDialog(false);
+        setOtpValue('');
+        toast({ title: "Mobile Verified", description: "Your recovery number has been successfully registered." });
+      } else {
+        toast({ variant: "destructive", title: "Invalid Code", description: "The OTP entered is incorrect. Please try again." });
+      }
+      setIsVerifying(false);
+    }, 1500);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -251,64 +306,90 @@ export default function SettingsPage() {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-8">
-            <form onSubmit={handleSaveProfile} className="space-y-5 max-w-xl">
-              <div className="space-y-2">
-                <Label htmlFor="adminName">Administrator Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="adminName"
-                    className="pl-10 h-11"
-                    value={tempAdminName}
-                    onChange={(e) => setTempAdminName(e.target.value)}
-                    required
-                  />
+            <div className="space-y-8 max-w-xl">
+              <form onSubmit={handleSaveProfile} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="adminName">Administrator Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="adminName"
+                      className="pl-10 h-11"
+                      value={tempAdminName}
+                      onChange={(e) => setTempAdminName(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="recoveryEmail">Recovery Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="recoveryEmail"
-                      type="email"
-                      className="pl-10 h-11"
-                      placeholder="soumya@example.com"
-                      value={tempRecoveryEmail}
-                      onChange={(e) => setTempRecoveryEmail(e.target.value)}
-                      required
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="recoveryEmail">Recovery Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="recoveryEmail"
+                        type="email"
+                        className="pl-10 h-11"
+                        placeholder="soumya@example.com"
+                        value={tempRecoveryEmail}
+                        onChange={(e) => setTempRecoveryEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="recoveryPhone">Recovery Mobile</Label>
+                      {isPhoneVerified ? (
+                        <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100 h-5 px-1.5 flex gap-1 items-center">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 h-5 px-1.5 flex gap-1 items-center">
+                          <AlertCircle className="h-3 w-3" />
+                          Unverified
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="recoveryPhone"
+                        className="pl-10 h-11"
+                        placeholder="7025801010"
+                        value={tempRecoveryPhone}
+                        onChange={(e) => setTempRecoveryPhone(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="recoveryPhone">Recovery Phone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="recoveryPhone"
-                      className="pl-10 h-11"
-                      placeholder="7025801010"
-                      value={tempRecoveryPhone}
-                      onChange={(e) => setTempRecoveryPhone(e.target.value)}
-                      required
-                    />
-                  </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button type="submit" variant="outline" className="flex-1 h-11">
+                    Update Profile Data
+                  </Button>
+                  {!isPhoneVerified && tempRecoveryPhone === recoveryPhone && (
+                    <Button 
+                      type="button" 
+                      onClick={handleStartVerification} 
+                      className="flex-1 h-11 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md font-bold"
+                    >
+                      Verify Mobile Number (OTP)
+                    </Button>
+                  )}
                 </div>
-              </div>
+              </form>
               
               <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex gap-3">
                 <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-800 leading-relaxed">
-                  The recovery email and phone number are used to retrieve your Admin ID or reset your password if you lose access.
+                  Registering a verified mobile number adds an extra layer of security. You can use it to recover your ID or reset your password via SMS OTP.
                 </p>
               </div>
-
-              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
-                Update Identity & Recovery
-              </Button>
-            </form>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -397,6 +478,42 @@ export default function SettingsPage() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/* OTP Verification Dialog */}
+      <Dialog open={showOTPDialog} onOpenChange={setShowOTPDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-primary" />
+              Confirm Mobile Registration
+            </DialogTitle>
+            <DialogDescription>
+              We've sent a 6-digit verification code to <span className="font-bold text-foreground">{tempRecoveryPhone}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleConfirmOTP} className="space-y-6 pt-4">
+            <div className="space-y-2 text-center">
+              <Label htmlFor="otpInput" className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Enter 6-Digit Code</Label>
+              <Input
+                id="otpInput"
+                placeholder="000000"
+                maxLength={6}
+                className="text-center text-3xl h-16 font-black tracking-[0.5em] border-primary/20 focus:border-primary"
+                value={otpValue}
+                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                required
+              />
+              <p className="text-[10px] text-muted-foreground mt-2 italic">For prototype demo, check notifications for code.</p>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isVerifying || otpValue.length !== 6}>
+                {isVerifying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
+                Verify & Register
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
