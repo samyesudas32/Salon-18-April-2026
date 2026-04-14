@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info, Smartphone, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info, Smartphone, CheckCircle2, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function SettingsPage() {
   const { 
@@ -106,7 +107,6 @@ export default function SettingsPage() {
       return;
     }
 
-    // If phone changed, reset verification
     const phoneChanged = tempRecoveryPhone !== recoveryPhone;
 
     updateBusinessIdentity({ 
@@ -122,6 +122,17 @@ export default function SettingsPage() {
       toast({ variant: "destructive", title: "Missing Number", description: "Please enter a mobile number first." });
       return;
     }
+
+    // Auto-save details if they've changed before verifying
+    const detailsChanged = tempRecoveryPhone !== recoveryPhone || tempAdminName !== adminName || tempRecoveryEmail !== recoveryEmail;
+    if (detailsChanged) {
+      updateBusinessIdentity({ 
+        admin: tempAdminName,
+        recoveryEmail: tempRecoveryEmail,
+        recoveryPhone: tempRecoveryPhone,
+        isPhoneVerified: false 
+      });
+    }
     
     // Simulate sending OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -129,8 +140,8 @@ export default function SettingsPage() {
     setShowOTPDialog(true);
     
     toast({
-      title: "OTP Sent Successfully",
-      description: `[PROTOTYPE] Verification code is: ${code}`,
+      title: "OTP Triggered (Prototype)",
+      description: `SMS simulation sent to ${tempRecoveryPhone}. Code: ${code}`,
     });
   };
 
@@ -371,24 +382,26 @@ export default function SettingsPage() {
                   <Button type="submit" variant="outline" className="flex-1 h-11">
                     Update Profile Data
                   </Button>
-                  {!isPhoneVerified && tempRecoveryPhone === recoveryPhone && (
+                  {!isPhoneVerified && tempRecoveryPhone.trim().length >= 10 && (
                     <Button 
                       type="button" 
                       onClick={handleStartVerification} 
                       className="flex-1 h-11 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md font-bold"
                     >
-                      Verify Mobile Number (OTP)
+                      {tempRecoveryPhone !== recoveryPhone ? "Save & Verify OTP" : "Verify Mobile Number (OTP)"}
                     </Button>
                   )}
                 </div>
               </form>
               
-              <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex gap-3">
-                <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  Registering a verified mobile number adds an extra layer of security. You can use it to recover your ID or reset your password via SMS OTP.
-                </p>
-              </div>
+              <Alert className="bg-blue-50/50 border-blue-100">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-800 text-xs font-bold">Security Simulation</AlertTitle>
+                <AlertDescription className="text-blue-700 text-[11px] leading-relaxed">
+                  In a production environment, clicking "Verify" would send a real SMS via Firebase Phone Auth or Twilio. 
+                  For this prototype, the 6-digit code will appear in a notification and inside the verification screen.
+                </AlertDescription>
+              </Alert>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -488,7 +501,7 @@ export default function SettingsPage() {
               Confirm Mobile Registration
             </DialogTitle>
             <DialogDescription>
-              We've sent a 6-digit verification code to <span className="font-bold text-foreground">{tempRecoveryPhone}</span>.
+              We've triggered a simulated verification code to <span className="font-bold text-foreground">{tempRecoveryPhone}</span>.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleConfirmOTP} className="space-y-6 pt-4">
@@ -503,7 +516,16 @@ export default function SettingsPage() {
                 onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
                 required
               />
-              <p className="text-[10px] text-muted-foreground mt-2 italic">For prototype demo, check notifications for code.</p>
+              
+              <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10 animate-pulse">
+                <p className="text-[10px] text-primary font-bold uppercase tracking-tighter mb-1 flex items-center justify-center gap-1">
+                  <Sparkles className="h-3 w-3" /> 
+                  Prototype Simulation Hint
+                </p>
+                <p className="text-lg font-black text-primary tracking-widest">
+                  {sentOTP}
+                </p>
+              </div>
             </div>
             <DialogFooter className="sm:justify-start">
               <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isVerifying || otpValue.length !== 6}>
