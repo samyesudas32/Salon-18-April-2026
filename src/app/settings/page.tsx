@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +25,8 @@ export default function SettingsPage() {
     businessAddress,
     businessPhone,
     adminName, 
+    recoveryEmail,
+    recoveryPhone,
     updateBusinessIdentity 
   } = useApp();
   const { toast } = useToast();
@@ -44,6 +46,8 @@ export default function SettingsPage() {
   const [tempAddress, setTempAddress] = useState(businessAddress);
   const [tempPhone, setTempPhone] = useState(businessPhone);
   const [tempAdminName, setTempAdminName] = useState(adminName);
+  const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
+  const [tempRecoveryPhone, setTempRecoveryPhone] = useState(recoveryPhone);
 
   useEffect(() => {
     setTempBusinessName(businessName);
@@ -52,7 +56,9 @@ export default function SettingsPage() {
     setTempAddress(businessAddress);
     setTempPhone(businessPhone);
     setTempAdminName(adminName);
-  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName]);
+    setTempRecoveryEmail(recoveryEmail);
+    setTempRecoveryPhone(recoveryPhone);
+  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +89,11 @@ export default function SettingsPage() {
       });
       return;
     }
-    updateBusinessIdentity({ admin: tempAdminName });
+    updateBusinessIdentity({ 
+      admin: tempAdminName,
+      recoveryEmail: tempRecoveryEmail,
+      recoveryPhone: tempRecoveryPhone
+    });
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -129,7 +139,7 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
         <h2 className="text-3xl font-headline font-bold text-primary tracking-tight">Settings</h2>
-        <p className="text-muted-foreground mt-1 text-lg">Manage your business branding, slip data, and security preferences.</p>
+        <p className="text-muted-foreground mt-1 text-lg">Manage your business branding, recovery methods, and security preferences.</p>
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
@@ -227,7 +237,7 @@ export default function SettingsPage() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* Administrator Profile Item */}
+        {/* Administrator Profile & Recovery Item */}
         <AccordionItem value="admin-profile" className="border rounded-xl bg-card shadow-sm px-6">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -235,13 +245,13 @@ export default function SettingsPage() {
                 <User className="h-5 w-5" />
               </div>
               <div className="flex flex-col">
-                <p className="font-bold text-lg text-primary leading-none mb-1">Administrator Profile</p>
-                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name displayed in the dashboard.</p>
+                <p className="font-bold text-lg text-primary leading-none mb-1">Profile & Recovery Methods</p>
+                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name and contact for identity recovery.</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-8">
-            <form onSubmit={handleSaveProfile} className="space-y-5 max-w-md">
+            <form onSubmit={handleSaveProfile} className="space-y-5 max-w-xl">
               <div className="space-y-2">
                 <Label htmlFor="adminName">Administrator Name</Label>
                 <div className="relative">
@@ -255,8 +265,48 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="recoveryEmail">Recovery Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="recoveryEmail"
+                      type="email"
+                      className="pl-10 h-11"
+                      placeholder="soumya@example.com"
+                      value={tempRecoveryEmail}
+                      onChange={(e) => setTempRecoveryEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recoveryPhone">Recovery Phone</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="recoveryPhone"
+                      className="pl-10 h-11"
+                      placeholder="7025801010"
+                      value={tempRecoveryPhone}
+                      onChange={(e) => setTempRecoveryPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex gap-3">
+                <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  The recovery email and phone number are used to retrieve your Admin ID or reset your password if you lose access.
+                </p>
+              </div>
+
               <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
-                Update Profile Name
+                Update Identity & Recovery
               </Button>
             </form>
           </AccordionContent>

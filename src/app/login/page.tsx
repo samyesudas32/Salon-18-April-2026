@@ -8,18 +8,31 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, User, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, LogIn, Mail, Phone, AlertCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login, isLoggedIn } = useApp();
+  // Recovery State
+  const [showRecoverPass, setShowRecoverPass] = useState(false);
+  const [showRecoverUser, setShowRecoverUser] = useState(false);
+  const [recoveryInput, setRecoveryInput] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const { login, isLoggedIn, initiatePasswordReset, recoverUserId } = useApp();
   const router = useRouter();
   const { toast } = useToast();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (isLoggedIn) {
       router.push('/');
@@ -44,6 +57,64 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      const res = initiatePasswordReset(recoveryInput);
+      if (res.success) {
+        toast({
+          title: "Recovery Initiated",
+          description: res.message,
+        });
+        setShowRecoverPass(false);
+        setRecoveryInput('');
+        
+        // Simulation Helper: In a real app we don't do this, but for the prototype we show the link
+        if (res.token) {
+          toast({
+            title: "Simulated Recovery Link",
+            description: "Click to simulate email link: /reset-password?token=" + res.token,
+            action: <Button variant="outline" size="sm" onClick={() => router.push(`/reset-password?token=${res.token}`)}>Reset Now</Button>
+          });
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: res.message,
+        });
+      }
+      setIsProcessing(false);
+    }, 1000);
+  };
+
+  const handleForgotUserId = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      const res = recoverUserId(recoveryInput);
+      if (res.success) {
+        toast({
+          title: "User ID Sent",
+          description: res.message,
+        });
+        setShowRecoverUser(false);
+        setRecoveryInput('');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Not Found",
+          description: res.message,
+        });
+      }
+      setIsProcessing(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <Card className="w-full max-w-md shadow-2xl border-border/40 animate-in fade-in zoom-in duration-500 overflow-hidden">
@@ -61,7 +132,16 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userId">Admin ID</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="userId">Admin ID</Label>
+                <button 
+                  type="button" 
+                  onClick={() => setShowRecoverUser(true)}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  Forgot ID?
+                </button>
+              </div>
               <div className="relative group">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
@@ -76,7 +156,16 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <button 
+                  type="button" 
+                  onClick={() => setShowRecoverPass(true)}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative group">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
@@ -110,6 +199,79 @@ export default function LoginPage() {
           </p>
         </CardFooter>
       </Card>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showRecoverPass} onOpenChange={setShowRecoverPass}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-primary" />
+              Reset Admin Password
+            </DialogTitle>
+            <DialogDescription>
+              Enter your registered recovery email to receive a secure reset token.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="recoveryEmail">Registered Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="recoveryEmail"
+                  type="email"
+                  placeholder="e.g. soumya@example.com"
+                  className="pl-10 h-11"
+                  value={recoveryInput}
+                  onChange={(e) => setRecoveryInput(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <Button type="submit" className="w-full h-11" disabled={isProcessing}>
+                {isProcessing ? "Processing..." : "Generate Reset Link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Forgot User ID Dialog */}
+      <Dialog open={showRecoverUser} onOpenChange={setShowRecoverUser}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-primary" />
+              Recover Admin User ID
+            </DialogTitle>
+            <DialogDescription>
+              Enter your registered recovery email or phone number to retrieve your ID.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotUserId} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="userIdContact">Contact Info</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="userIdContact"
+                  placeholder="Email or Phone Number"
+                  className="pl-10 h-11"
+                  value={recoveryInput}
+                  onChange={(e) => setRecoveryInput(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <Button type="submit" className="w-full h-11" disabled={isProcessing}>
+                {isProcessing ? "Verifying..." : "Send User ID"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
