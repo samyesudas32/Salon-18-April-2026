@@ -45,7 +45,6 @@ interface AppContextType {
   adminName: string;
   recoveryEmail: string;
   recoveryPhone: string;
-  isPhoneVerified: boolean;
   updateBusinessIdentity: (identity: {
     name?: string;
     shortName?: string;
@@ -55,7 +54,6 @@ interface AppContextType {
     admin?: string;
     recoveryEmail?: string;
     recoveryPhone?: string;
-    isPhoneVerified?: boolean;
   }) => void;
   // Dashboard Config
   showStats: boolean;
@@ -103,9 +101,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
   const [recoveryEmail, setRecoveryEmail] = useState<string>('soumya@example.com');
   const [recoveryPhone, setRecoveryPhone] = useState<string>('7025801010');
-  const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(false);
 
-  // Recovery Simulation State (Simulating DB store for tokens)
+  // Recovery Simulation State
   const [activeResetToken, setActiveResetToken] = useState<ResetToken | null>(null);
 
   // Dashboard Visibility State
@@ -149,7 +146,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedAdminName = localStorage.getItem('adminName');
       const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
       const storedRecoveryPhone = localStorage.getItem('recoveryPhone');
-      const storedIsPhoneVerified = localStorage.getItem('isPhoneVerified');
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
@@ -170,7 +166,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedAdminName) setAdminName(storedAdminName);
       if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
       if (storedRecoveryPhone) setRecoveryPhone(storedRecoveryPhone);
-      if (storedIsPhoneVerified !== null) setIsPhoneVerified(storedIsPhoneVerified === 'true');
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
@@ -207,7 +202,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('adminName', adminName);
         localStorage.setItem('recoveryEmail', recoveryEmail);
         localStorage.setItem('recoveryPhone', recoveryPhone);
-        localStorage.setItem('isPhoneVerified', String(isPhoneVerified));
         localStorage.setItem('adminPassword', adminPassword);
         
         localStorage.setItem('showStats', String(showStats));
@@ -222,7 +216,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone, isPhoneVerified, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -252,18 +246,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (email.toLowerCase() !== recoveryEmail.toLowerCase()) {
       return { success: false, message: 'This email is not registered for recovery.' };
     }
-    // Generate secure token (simulated)
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const expiry = Date.now() + (15 * 60 * 1000); // 15 Minutes expiry
-    
+    const expiry = Date.now() + (15 * 60 * 1000); 
     setActiveResetToken({ token, expiry });
-    
-    // In a real app, you would send an email here.
-    console.log(`[SIMULATION] Recovery Email Sent to ${email} with Link: http://localhost:9002/reset-password?token=${token}`);
-    
     return { 
       success: true, 
-      token, // We return token for the simulation/demo purpose
+      token,
       message: 'A secure reset link has been sent to your email.' 
     };
   };
@@ -276,18 +264,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setActiveResetToken(null);
       return { success: false, message: 'Reset token has expired (15 min limit).' };
     }
-
     setAdminPassword(newPass);
     localStorage.setItem('adminPassword', newPass);
-    setActiveResetToken(null); // Invalidate token after use
-    
+    setActiveResetToken(null);
     return { success: true, message: 'Password has been reset successfully. You can now log in.' };
   };
 
   const recoverUserId = (emailOrPhone: string) => {
     const val = emailOrPhone.toLowerCase().trim();
     if (val === recoveryEmail.toLowerCase() || val === recoveryPhone) {
-      // In a real app, send ID to email/SMS
       return { success: true, message: 'Your Admin ID has been sent to your registered contact.' };
     }
     return { success: false, message: 'Contact information not found in our records.' };
@@ -302,7 +287,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     admin?: string;
     recoveryEmail?: string;
     recoveryPhone?: string;
-    isPhoneVerified?: boolean;
   }) => {
     if (identity.name !== undefined) setBusinessName(identity.name);
     if (identity.shortName !== undefined) setBusinessShortName(identity.shortName);
@@ -312,9 +296,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (identity.admin !== undefined) setAdminName(identity.admin);
     if (identity.recoveryEmail !== undefined) setRecoveryEmail(identity.recoveryEmail);
     if (identity.recoveryPhone !== undefined) setRecoveryPhone(identity.recoveryPhone);
-    if (identity.isPhoneVerified !== undefined) setIsPhoneVerified(identity.isPhoneVerified);
     
-    toast({ title: "Profile Updated", description: "Identity and recovery settings saved." });
+    toast({ title: "Profile Updated", description: "Business identity and recovery contact saved." });
   };
 
   const toggleDashboardSection = (section: DashboardSection) => {
@@ -329,7 +312,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       case 'reports': setShowReports(!showReports); newState = !showReports; break;
       case 'dailyProfit': setShowDailyProfit(!showDailyProfit); newState = !showDailyProfit; break;
     }
-    
     const sectionName = section.replace(/([A-Z])/g, ' $1').toLowerCase();
     toast({ 
       title: "Dashboard Updated", 
@@ -341,7 +323,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const id = Math.random().toString(36).substr(2, 9);
     const booking = { ...newBooking, id };
     setBookings((prev) => [...prev, booking]);
-    
     addServiceRecord({
       clientName: booking.clientName,
       phoneNumber: booking.phoneNumber,
@@ -354,7 +335,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       advanceAmount: booking.advanceAmount,
       balanceAmount: booking.balanceAmount,
     });
-    
     toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
   };
 
@@ -370,10 +350,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteBookings = (ids: string[]) => {
     setBookings((prev) => prev.filter((b) => !ids.includes(b.id)));
-    toast({ 
-      title: "Bulk Delete Successful", 
-      description: `${ids.length} booking records have been permanently removed.` 
-    });
+    toast({ title: "Bulk Delete Successful", description: `${ids.length} records removed.` });
   };
 
   const addServiceRecord = (newRecord: Omit<ServiceRecord, 'id'>) => {
@@ -409,10 +386,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteExpenses = (ids: string[]) => {
     setExpenses((prev) => prev.filter((e) => !ids.includes(e.id)));
-    toast({ 
-      title: "Bulk Delete Successful", 
-      description: `${ids.length} expense records have been permanently removed.` 
-    });
+    toast({ title: "Bulk Delete Successful", description: `${ids.length} records removed.` });
   };
 
   const addProductExpense = (newExpense: Omit<ProductExpense, 'id'>) => {
@@ -433,10 +407,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteProductExpenses = (ids: string[]) => {
     setProductExpenses((prev) => prev.filter((e) => !ids.includes(e.id)));
-    toast({ 
-      title: "Bulk Delete Successful", 
-      description: `${ids.length} product purchase records have been permanently removed.` 
-    });
+    toast({ title: "Bulk Delete Successful", description: `${ids.length} records removed.` });
   };
 
   useEffect(() => {
@@ -468,7 +439,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, 
-      recoveryEmail, recoveryPhone, isPhoneVerified, updateBusinessIdentity,
+      recoveryEmail, recoveryPhone, updateBusinessIdentity,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword,
       initiatePasswordReset, resetPasswordWithToken, recoverUserId

@@ -7,24 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Info, Smartphone, CheckCircle2, AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Smartphone } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function SettingsPage() {
   const { 
@@ -37,7 +27,6 @@ export default function SettingsPage() {
     adminName, 
     recoveryEmail,
     recoveryPhone,
-    isPhoneVerified,
     updateBusinessIdentity 
   } = useApp();
   const { toast } = useToast();
@@ -59,12 +48,6 @@ export default function SettingsPage() {
   const [tempAdminName, setTempAdminName] = useState(adminName);
   const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
   const [tempRecoveryPhone, setTempRecoveryPhone] = useState(recoveryPhone);
-
-  // OTP Verification State
-  const [showOTPDialog, setShowOTPDialog] = useState(false);
-  const [otpValue, setOtpValue] = useState('');
-  const [sentOTP, setSentOTP] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     setTempBusinessName(businessName);
@@ -107,59 +90,11 @@ export default function SettingsPage() {
       return;
     }
 
-    const phoneChanged = tempRecoveryPhone !== recoveryPhone;
-
     updateBusinessIdentity({ 
       admin: tempAdminName,
       recoveryEmail: tempRecoveryEmail,
       recoveryPhone: tempRecoveryPhone,
-      isPhoneVerified: phoneChanged ? false : isPhoneVerified
     });
-  };
-
-  const handleStartVerification = () => {
-    if (!tempRecoveryPhone.trim()) {
-      toast({ variant: "destructive", title: "Missing Number", description: "Please enter a mobile number first." });
-      return;
-    }
-
-    // Auto-save details if they've changed before verifying
-    const detailsChanged = tempRecoveryPhone !== recoveryPhone || tempAdminName !== adminName || tempRecoveryEmail !== recoveryEmail;
-    if (detailsChanged) {
-      updateBusinessIdentity({ 
-        admin: tempAdminName,
-        recoveryEmail: tempRecoveryEmail,
-        recoveryPhone: tempRecoveryPhone,
-        isPhoneVerified: false 
-      });
-    }
-    
-    // Simulate sending OTP
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setSentOTP(code);
-    setShowOTPDialog(true);
-    
-    toast({
-      title: "OTP Triggered (Prototype)",
-      description: `SMS simulation sent to ${tempRecoveryPhone}. Code: ${code}`,
-    });
-  };
-
-  const handleConfirmOTP = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsVerifying(true);
-
-    setTimeout(() => {
-      if (otpValue === sentOTP) {
-        updateBusinessIdentity({ isPhoneVerified: true });
-        setShowOTPDialog(false);
-        setOtpValue('');
-        toast({ title: "Mobile Verified", description: "Your recovery number has been successfully registered." });
-      } else {
-        toast({ variant: "destructive", title: "Invalid Code", description: "The OTP entered is incorrect. Please try again." });
-      }
-      setIsVerifying(false);
-    }, 1500);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -350,20 +285,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="recoveryPhone">Recovery Mobile</Label>
-                      {isPhoneVerified ? (
-                        <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100 h-5 px-1.5 flex gap-1 items-center">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Verified
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 h-5 px-1.5 flex gap-1 items-center">
-                          <AlertCircle className="h-3 w-3" />
-                          Unverified
-                        </Badge>
-                      )}
-                    </div>
+                    <Label htmlFor="recoveryPhone">Recovery Mobile</Label>
                     <div className="relative">
                       <Smartphone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -378,30 +300,10 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button type="submit" variant="outline" className="flex-1 h-11">
-                    Update Profile Data
-                  </Button>
-                  {!isPhoneVerified && tempRecoveryPhone.trim().length >= 10 && (
-                    <Button 
-                      type="button" 
-                      onClick={handleStartVerification} 
-                      className="flex-1 h-11 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md font-bold"
-                    >
-                      {tempRecoveryPhone !== recoveryPhone ? "Save & Verify OTP" : "Verify Mobile Number (OTP)"}
-                    </Button>
-                  )}
-                </div>
+                <Button type="submit" variant="outline" className="w-full md:w-auto px-8 h-11">
+                  Update Profile Data
+                </Button>
               </form>
-              
-              <Alert className="bg-blue-50/50 border-blue-100">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-800 text-xs font-bold">Security Simulation</AlertTitle>
-                <AlertDescription className="text-blue-700 text-[11px] leading-relaxed">
-                  In a production environment, clicking "Verify" would send a real SMS via Firebase Phone Auth or Twilio. 
-                  For this prototype, the 6-digit code will appear in a notification and inside the verification screen.
-                </AlertDescription>
-              </Alert>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -491,51 +393,6 @@ export default function SettingsPage() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      {/* OTP Verification Dialog */}
-      <Dialog open={showOTPDialog} onOpenChange={setShowOTPDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5 text-primary" />
-              Confirm Mobile Registration
-            </DialogTitle>
-            <DialogDescription>
-              We've triggered a simulated verification code to <span className="font-bold text-foreground">{tempRecoveryPhone}</span>.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleConfirmOTP} className="space-y-6 pt-4">
-            <div className="space-y-2 text-center">
-              <Label htmlFor="otpInput" className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Enter 6-Digit Code</Label>
-              <Input
-                id="otpInput"
-                placeholder="000000"
-                maxLength={6}
-                className="text-center text-3xl h-16 font-black tracking-[0.5em] border-primary/20 focus:border-primary"
-                value={otpValue}
-                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
-                required
-              />
-              
-              <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10 animate-pulse">
-                <p className="text-[10px] text-primary font-bold uppercase tracking-tighter mb-1 flex items-center justify-center gap-1">
-                  <Sparkles className="h-3 w-3" /> 
-                  Prototype Simulation Hint
-                </p>
-                <p className="text-lg font-black text-primary tracking-widest">
-                  {sentOTP}
-                </p>
-              </div>
-            </div>
-            <DialogFooter className="sm:justify-start">
-              <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isVerifying || otpValue.length !== 6}>
-                {isVerifying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
-                Verify & Register
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
