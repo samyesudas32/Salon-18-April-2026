@@ -32,18 +32,12 @@ SMTP_PASS=your-16-char-app-password
 NEXT_PUBLIC_BASE_URL=https://your-domain.com
 ```
 
-## 🔹 How it works in this app
-The code uses `nodemailer` with the `service: "gmail"` configuration:
-
-```ts
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-```
+## ⚠️ Security Best Practices
+- 🔒 **Use HTTPS**: Ensure `NEXT_PUBLIC_BASE_URL` starts with `https://` in production to protect reset links.
+- ⏳ **Token Expiry**: Links expire in 15 minutes (configured in `store.tsx`).
+- 🔁 **One-Time Use**: The application logic invalidates the token immediately after a successful reset.
+- 🔐 **Secure Creds**: Never check your `.env` file into version control (Git).
+- 🚫 **No Hardcoding**: Never put your Gmail App Password directly in the source code.
 
 ## ⚠️ Important Limitations
 - **Limit**: ~500 recipients per day for free accounts.
