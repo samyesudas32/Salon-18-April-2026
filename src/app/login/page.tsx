@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, User, Eye, EyeOff, LogIn, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, LogIn, Mail, AlertCircle, Loader2 } from 'lucide-react';
 import { sendPasswordResetEmail } from '@/app/actions/email-actions';
 import {
   Dialog,
@@ -267,17 +266,18 @@ export default function LoginPage() {
               Recover Admin User ID
             </DialogTitle>
             <DialogDescription>
-              Enter your registered recovery email or phone number to retrieve your ID.
+              Enter your registered recovery email to retrieve your ID.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleForgotUserId} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="userIdContact">Contact Info</Label>
+              <Label htmlFor="userIdContact">Registered Email</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="userIdContact"
-                  placeholder="Email or Phone Number"
+                  type="email"
+                  placeholder="e.g. soumya@example.com"
                   className="pl-10 h-11"
                   value={recoveryInput}
                   onChange={(e) => setRecoveryInput(e.target.value)}

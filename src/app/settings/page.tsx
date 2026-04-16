@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Smartphone } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -26,7 +26,6 @@ export default function SettingsPage() {
     businessPhone,
     adminName, 
     recoveryEmail,
-    recoveryPhone,
     updateBusinessIdentity 
   } = useApp();
   const { toast } = useToast();
@@ -47,7 +46,6 @@ export default function SettingsPage() {
   const [tempPhone, setTempPhone] = useState(businessPhone);
   const [tempAdminName, setTempAdminName] = useState(adminName);
   const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
-  const [tempRecoveryPhone, setTempRecoveryPhone] = useState(recoveryPhone);
 
   useEffect(() => {
     setTempBusinessName(businessName);
@@ -57,8 +55,7 @@ export default function SettingsPage() {
     setTempPhone(businessPhone);
     setTempAdminName(adminName);
     setTempRecoveryEmail(recoveryEmail);
-    setTempRecoveryPhone(recoveryPhone);
-  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone]);
+  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +90,6 @@ export default function SettingsPage() {
     updateBusinessIdentity({ 
       admin: tempAdminName,
       recoveryEmail: tempRecoveryEmail,
-      recoveryPhone: tempRecoveryPhone,
     });
   };
 
@@ -247,7 +243,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col">
                 <p className="font-bold text-lg text-primary leading-none mb-1">Profile & Recovery Methods</p>
-                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name and contact for identity recovery.</p>
+                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name and email for identity recovery.</p>
               </div>
             </div>
           </AccordionTrigger>
@@ -268,35 +264,19 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recoveryEmail">Recovery Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="recoveryEmail"
-                        type="email"
-                        className="pl-10 h-11"
-                        placeholder="soumya@example.com"
-                        value={tempRecoveryEmail}
-                        onChange={(e) => setTempRecoveryEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="recoveryPhone">Recovery Mobile</Label>
-                    <div className="relative">
-                      <Smartphone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="recoveryPhone"
-                        className="pl-10 h-11"
-                        placeholder="7025801010"
-                        value={tempRecoveryPhone}
-                        onChange={(e) => setTempRecoveryPhone(e.target.value)}
-                        required
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recoveryEmail">Recovery Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="recoveryEmail"
+                      type="email"
+                      className="pl-10 h-11"
+                      placeholder="soumya@example.com"
+                      value={tempRecoveryEmail}
+                      onChange={(e) => setTempRecoveryEmail(e.target.value)}
+                      required
+                    />
                   </div>
                 </div>
 

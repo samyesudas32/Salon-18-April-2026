@@ -44,7 +44,6 @@ interface AppContextType {
   businessPhone: string;
   adminName: string;
   recoveryEmail: string;
-  recoveryPhone: string;
   updateBusinessIdentity: (identity: {
     name?: string;
     shortName?: string;
@@ -53,7 +52,6 @@ interface AppContextType {
     phone?: string;
     admin?: string;
     recoveryEmail?: string;
-    recoveryPhone?: string;
   }) => void;
   // Dashboard Config
   showStats: boolean;
@@ -73,7 +71,7 @@ interface AppContextType {
   // Recovery Methods
   initiatePasswordReset: (email: string) => { success: boolean; token?: string; message: string };
   resetPasswordWithToken: (token: string, newPass: string) => { success: boolean; message: string };
-  recoverUserId: (emailOrPhone: string) => { success: boolean; message: string };
+  recoverUserId: (email: string) => { success: boolean; message: string };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -100,7 +98,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
   const [recoveryEmail, setRecoveryEmail] = useState<string>('soumya@example.com');
-  const [recoveryPhone, setRecoveryPhone] = useState<string>('7025801010');
 
   // Recovery Simulation State
   const [activeResetToken, setActiveResetToken] = useState<ResetToken | null>(null);
@@ -145,7 +142,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessPhone = localStorage.getItem('businessPhone');
       const storedAdminName = localStorage.getItem('adminName');
       const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
-      const storedRecoveryPhone = localStorage.getItem('recoveryPhone');
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
@@ -165,7 +161,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedBusinessPhone) setBusinessPhone(storedBusinessPhone);
       if (storedAdminName) setAdminName(storedAdminName);
       if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
-      if (storedRecoveryPhone) setRecoveryPhone(storedRecoveryPhone);
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
@@ -201,7 +196,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessPhone', businessPhone);
         localStorage.setItem('adminName', adminName);
         localStorage.setItem('recoveryEmail', recoveryEmail);
-        localStorage.setItem('recoveryPhone', recoveryPhone);
         localStorage.setItem('adminPassword', adminPassword);
         
         localStorage.setItem('showStats', String(showStats));
@@ -216,7 +210,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, recoveryPhone, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -270,12 +264,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: 'Password has been reset successfully. You can now log in.' };
   };
 
-  const recoverUserId = (emailOrPhone: string) => {
-    const val = emailOrPhone.toLowerCase().trim();
-    if (val === recoveryEmail.toLowerCase() || val === recoveryPhone) {
-      return { success: true, message: 'Your Admin ID has been sent to your registered contact.' };
+  const recoverUserId = (email: string) => {
+    const val = email.toLowerCase().trim();
+    if (val === recoveryEmail.toLowerCase()) {
+      return { success: true, message: 'Your Admin ID has been sent to your registered email.' };
     }
-    return { success: false, message: 'Contact information not found in our records.' };
+    return { success: false, message: 'Email address not found in our records.' };
   };
 
   const updateBusinessIdentity = (identity: {
@@ -286,7 +280,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     phone?: string;
     admin?: string;
     recoveryEmail?: string;
-    recoveryPhone?: string;
   }) => {
     if (identity.name !== undefined) setBusinessName(identity.name);
     if (identity.shortName !== undefined) setBusinessShortName(identity.shortName);
@@ -295,7 +288,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (identity.phone !== undefined) setBusinessPhone(identity.phone);
     if (identity.admin !== undefined) setAdminName(identity.admin);
     if (identity.recoveryEmail !== undefined) setRecoveryEmail(identity.recoveryEmail);
-    if (identity.recoveryPhone !== undefined) setRecoveryPhone(identity.recoveryPhone);
     
     toast({ title: "Profile Updated", description: "Business identity and recovery contact saved." });
   };
@@ -439,7 +431,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, 
-      recoveryEmail, recoveryPhone, updateBusinessIdentity,
+      recoveryEmail, updateBusinessIdentity,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword,
       initiatePasswordReset, resetPasswordWithToken, recoverUserId
