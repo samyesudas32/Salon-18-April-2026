@@ -2,6 +2,11 @@
 
 /**
  * @fileOverview Server actions for handling email-related logic using SMTP.
+ * 
+ * To use Gmail SMTP:
+ * 1. Enable 2-Step Verification on your Google Account.
+ * 2. Generate an "App Password" at https://myaccount.google.com/apppasswords
+ * 3. Set SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_PASS=your-app-password
  */
 
 interface SendResetEmailProps {
@@ -20,11 +25,15 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   const nodemailer = require('nodemailer');
 
   const smtpConfig = {
+    // Gmail Example: smtp.gmail.com
     host: process.env.SMTP_HOST || 'smtp.example.com',
+    // Gmail Example: 587 (TLS) or 465 (SSL)
     port: parseInt(process.env.SMTP_PORT || '587'),
+    // secure: true for 465, false for 587
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
       user: process.env.SMTP_USER || 'noreply@example.com',
+      // CRITICAL: For Gmail, use an 'App Password', NOT your regular login password
       pass: process.env.SMTP_PASS || 'password',
     },
   };
