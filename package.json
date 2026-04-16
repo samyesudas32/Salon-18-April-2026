@@ -1,8 +1,12 @@
 
 {
-  "name": "nextn",
+  "name": "salon-of-guzellik",
   "version": "0.1.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samyesudas32/Salon-Of-Guzellik-a-c..git"
+  },
   "scripts": {
     "dev": "next dev",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
