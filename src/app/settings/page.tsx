@@ -18,7 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 
 export default function SettingsPage() {
   const { 
-    updateAdminPassword, 
+    updateAdminCredentials,
+    adminId, 
     businessName, 
     businessShortName, 
     businessDescription,
@@ -30,13 +31,14 @@ export default function SettingsPage() {
   } = useApp();
   const { toast } = useToast();
   
-  // Password State
+  // Security State
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [tempAdminId, setTempAdminId] = useState(adminId);
 
   // Identity State
   const [tempBusinessName, setTempBusinessName] = useState(businessName);
@@ -48,6 +50,7 @@ export default function SettingsPage() {
   const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
 
   useEffect(() => {
+    setTempAdminId(adminId);
     setTempBusinessName(businessName);
     setTempShortName(businessShortName);
     setTempDesc(businessDescription);
@@ -55,7 +58,7 @@ export default function SettingsPage() {
     setTempPhone(businessPhone);
     setTempAdminName(adminName);
     setTempRecoveryEmail(recoveryEmail);
-  }, [businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail]);
+  }, [adminId, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,10 +96,10 @@ export default function SettingsPage() {
     });
   };
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdateSecurity = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (newPass !== confirmPass) {
+    if (newPass && newPass !== confirmPass) {
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -105,7 +108,7 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPass.length < 4) {
+    if (newPass && newPass.length < 4) {
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -114,7 +117,21 @@ export default function SettingsPage() {
       return;
     }
 
-    const result = updateAdminPassword(currentPass, newPass);
+    if (tempAdminId.trim().length < 4) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Admin ID must be at least 4 characters.",
+      });
+      return;
+    }
+
+    const result = updateAdminCredentials({
+      currentPass: currentPass,
+      newId: tempAdminId.trim(),
+      newPass: newPass || undefined,
+    });
+
     if (result.success) {
       toast({
         title: "Success",
@@ -302,7 +319,20 @@ export default function SettingsPage() {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-8">
-            <form onSubmit={handleUpdatePassword} className="space-y-5 max-w-md">
+            <form onSubmit={handleUpdateSecurity} className="space-y-5 max-w-md">
+              <div className="space-y-2">
+                <Label htmlFor="adminId">Admin Login ID</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="adminId"
+                    className="pl-10 h-11"
+                    value={tempAdminId}
+                    onChange={(e) => setTempAdminId(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="currentPass">Current Password</Label>
                 <div className="relative">
@@ -311,6 +341,7 @@ export default function SettingsPage() {
                     id="currentPass"
                     type={showCurrent ? "text" : "password"}
                     className="pl-10 pr-10 h-11"
+                    placeholder="Enter current password to make changes"
                     value={currentPass}
                     onChange={(e) => setCurrentPass(e.target.value)}
                     required
@@ -325,16 +356,16 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPass">New Password</Label>
+                <Label htmlFor="newPass">New Password (Optional)</Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="newPass"
                     type={showNew ? "text" : "password"}
                     className="pl-10 pr-10 h-11"
+                    placeholder="Leave blank to keep current password"
                     value={newPass}
                     onChange={(e) => setNewPass(e.target.value)}
-                    required
                   />
                   <button
                     type="button"
@@ -353,9 +384,10 @@ export default function SettingsPage() {
                     id="confirmPass"
                     type={showConfirm ? "text" : "password"}
                     className="pl-10 pr-10 h-11"
+                    placeholder="Confirm if changing password"
                     value={confirmPass}
                     onChange={(e) => setConfirmPass(e.target.value)}
-                    required
+                    disabled={!newPass}
                   />
                   <button
                     type="button"
@@ -367,7 +399,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm font-semibold">
-                Update Secure Password
+                Update Security Credentials
               </Button>
             </form>
           </AccordionContent>

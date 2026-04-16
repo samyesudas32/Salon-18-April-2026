@@ -68,9 +68,10 @@ interface AppContextType {
   toggleDashboardSection: (section: DashboardSection) => void;
   // Auth state
   isLoggedIn: boolean;
+  adminId: string;
   login: (userId: string, pass: string) => boolean;
   logout: () => void;
-  updateAdminPassword: (current: string, next: string) => { success: boolean; message: string };
+  updateAdminCredentials: (creds: { currentPass: string; newId?: string; newPass?: string }) => { success: boolean; message: string };
   // Recovery Methods
   initiatePasswordReset: (email: string) => { success: boolean; token?: string; message: string };
   resetPasswordWithToken: (token: string, newPass: string) => { success: boolean; message: string };
@@ -85,6 +86,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [adminId, setAdminId] = useState<string>('Admin');
   const [adminPassword, setAdminPassword] = useState<string>('Sam0438');
   const [isHydrated, setIsHydrated] = useState(false);
   
@@ -119,6 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const storedStatus = localStorage.getItem('isAdminLoggedIn') === 'true';
+      const storedAdminId = localStorage.getItem('adminId');
       const storedPass = localStorage.getItem('adminPassword');
       
       const getSafeParsed = (key: string) => {
@@ -158,6 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedShowDailyProfit = localStorage.getItem('showDailyProfit');
       
       if (storedStatus) setIsLoggedIn(true);
+      if (storedAdminId) setAdminId(storedAdminId);
       if (storedPass) setAdminPassword(storedPass);
       if (storedBusinessName) setBusinessName(storedBusinessName);
       if (storedBusinessShortName) setBusinessShortName(storedBusinessShortName);
@@ -202,6 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessPhone', businessPhone);
         localStorage.setItem('adminName', adminName);
         localStorage.setItem('recoveryEmail', recoveryEmail);
+        localStorage.setItem('adminId', adminId);
         localStorage.setItem('adminPassword', adminPassword);
 
         if (uploadedPhoto) {
@@ -222,10 +227,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminPassword, uploadedPhoto, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminId, adminPassword, uploadedPhoto, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
-    if (userId === 'Admin' && pass === adminPassword) {
+    if (userId === adminId && pass === adminPassword) {
       setIsLoggedIn(true);
       localStorage.setItem('isAdminLoggedIn', 'true');
       return true;
@@ -239,13 +244,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   };
 
-  const updateAdminPassword = (current: string, next: string) => {
-    if (current !== adminPassword) {
+  const updateAdminCredentials = (creds: { currentPass: string; newId?: string; newPass?: string }) => {
+    if (creds.currentPass !== adminPassword) {
       return { success: false, message: 'Current password is incorrect.' };
     }
-    setAdminPassword(next);
-    localStorage.setItem('adminPassword', next);
-    return { success: true, message: 'Password updated successfully!' };
+
+    let message = '';
+    let idUpdated = false;
+    let passUpdated = false;
+
+    if (creds.newId && creds.newId.trim() !== adminId) {
+        if (creds.newId.trim().length < 4) {
+            return { success: false, message: 'Admin ID must be at least 4 characters.' };
+        }
+        setAdminId(creds.newId.trim());
+        idUpdated = true;
+    }
+
+    if (creds.newPass && creds.newPass !== adminPassword) {
+        if (creds.newPass.length < 4) {
+            return { success: false, message: 'New password must be at least 4 characters.' };
+        }
+        setAdminPassword(creds.newPass);
+        passUpdated = true;
+    }
+    
+    if (idUpdated && passUpdated) {
+        message = 'Admin ID and password updated successfully.';
+    } else if (idUpdated) {
+        message = 'Admin ID updated successfully.';
+    } else if (passUpdated) {
+        message = 'Password updated successfully.';
+    } else {
+        return { success: true, message: 'No changes were made.' };
+    }
+
+    return { success: true, message: message };
   };
 
   const initiatePasswordReset = (email: string) => {
@@ -446,7 +480,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       recoveryEmail, updateBusinessIdentity,
       uploadedPhoto, setUploadedPhoto,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
-      isLoggedIn, login, logout, updateAdminPassword,
+      isLoggedIn, adminId, login, logout, updateAdminCredentials,
       initiatePasswordReset, resetPasswordWithToken, recoverUserId
     }}>
       {children}
