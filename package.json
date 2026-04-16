@@ -5,7 +5,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/samyesudas32/Salon-Of-Guzellik-a-c..git"
+    "url": "https://github.com/samyesudas32/Latest.git"
   },
   "scripts": {
     "dev": "next dev",
