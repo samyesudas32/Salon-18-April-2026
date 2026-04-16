@@ -13,12 +13,11 @@ Professional management software for Salon of Guzellik.
 - **Client Management**: Maintain history, loyalty, and contact details.
 - **Financial Reporting**: Annual and monthly statements with AI-powered insights.
 - **Expense Tracking**: Daily and product-specific expense management.
-- **Security**: Secure Admin login with SMTP-based password recovery.
+- **Security**: Secure Admin login.
 
 ## 🛠 Tech Stack
 - **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS & ShadCN UI
 - **Database/Auth**: Firebase Firestore & Firebase Auth
 - **AI**: Google Genkit (Gemini 2.5 Flash)
-- **Email**: Nodemailer (Gmail SMTP)
 - **PDF Generation**: jsPDF

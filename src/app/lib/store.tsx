@@ -8,11 +8,6 @@ import { Loader2 } from 'lucide-react';
 
 export type DashboardSection = 'stats' | 'bookings' | 'completedHistory' | 'serviceSection' | 'expenses' | 'productExpenses' | 'reports' | 'dailyProfit';
 
-interface ResetToken {
-  token: string;
-  expiry: number;
-}
-
 interface AppContextType {
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id'>) => void;
@@ -43,7 +38,6 @@ interface AppContextType {
   businessAddress: string;
   businessPhone: string;
   adminName: string;
-  recoveryEmail: string;
   updateBusinessIdentity: (identity: {
     name?: string;
     shortName?: string;
@@ -51,7 +45,6 @@ interface AppContextType {
     address?: string;
     phone?: string;
     admin?: string;
-    recoveryEmail?: string;
   }) => void;
   // Photo Upload
   uploadedPhoto: string | null;
@@ -72,10 +65,6 @@ interface AppContextType {
   login: (userId: string, pass: string) => boolean;
   logout: () => void;
   updateAdminCredentials: (creds: { currentPass: string; newId?: string; newPass?: string }) => { success: boolean; message: string };
-  // Recovery Methods
-  initiatePasswordReset: (email: string) => { success: boolean; token?: string; message: string };
-  resetPasswordWithToken: (token: string, newPass: string) => { success: boolean; message: string };
-  recoverUserId: (email: string) => { success: boolean; message: string };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -102,11 +91,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessAddress, setBusinessAddress] = useState<string>('West of Iron Bridge, CCSB Rd, Alappuzha, Kerala');
   const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
-  const [recoveryEmail, setRecoveryEmail] = useState<string>('soumya@example.com');
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
-
-  // Recovery Simulation State
-  const [activeResetToken, setActiveResetToken] = useState<ResetToken | null>(null);
 
   // Dashboard Visibility State
   const [showStats, setShowStats] = useState<boolean>(true);
@@ -148,7 +133,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessAddr = localStorage.getItem('businessAddress');
       const storedBusinessPhone = localStorage.getItem('businessPhone');
       const storedAdminName = localStorage.getItem('adminName');
-      const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
       const storedUploadedPhoto = localStorage.getItem('uploadedPhoto');
       
       const storedShowStats = localStorage.getItem('showStats');
@@ -169,7 +153,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedBusinessAddr) setBusinessAddress(storedBusinessAddr);
       if (storedBusinessPhone) setBusinessPhone(storedBusinessPhone);
       if (storedAdminName) setAdminName(storedAdminName);
-      if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
       if (storedUploadedPhoto) setUploadedPhoto(storedUploadedPhoto);
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
@@ -205,7 +188,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessAddress', businessAddress);
         localStorage.setItem('businessPhone', businessPhone);
         localStorage.setItem('adminName', adminName);
-        localStorage.setItem('recoveryEmail', recoveryEmail);
         localStorage.setItem('adminId', adminId);
         localStorage.setItem('adminPassword', adminPassword);
 
@@ -227,7 +209,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminId, adminPassword, uploadedPhoto, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, adminId, adminPassword, uploadedPhoto, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === adminId && pass === adminPassword) {
@@ -282,42 +264,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: message };
   };
 
-  const initiatePasswordReset = (email: string) => {
-    if (email.toLowerCase() !== recoveryEmail.toLowerCase()) {
-      return { success: false, message: 'This email is not registered for recovery.' };
-    }
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const expiry = Date.now() + (15 * 60 * 1000); 
-    setActiveResetToken({ token, expiry });
-    return { 
-      success: true, 
-      token,
-      message: 'A secure reset link has been sent to your email.' 
-    };
-  };
-
-  const resetPasswordWithToken = (token: string, newPass: string) => {
-    if (!activeResetToken || activeResetToken.token !== token) {
-      return { success: false, message: 'Invalid or missing reset token.' };
-    }
-    if (Date.now() > activeResetToken.expiry) {
-      setActiveResetToken(null);
-      return { success: false, message: 'Reset token has expired (15 min limit).' };
-    }
-    setAdminPassword(newPass);
-    localStorage.setItem('adminPassword', newPass);
-    setActiveResetToken(null);
-    return { success: true, message: 'Password has been reset successfully. You can now log in.' };
-  };
-
-  const recoverUserId = (email: string) => {
-    const val = email.toLowerCase().trim();
-    if (val === recoveryEmail.toLowerCase()) {
-      return { success: true, message: 'Your Admin ID has been sent to your registered email.' };
-    }
-    return { success: false, message: 'Email address not found in our records.' };
-  };
-
   const updateBusinessIdentity = (identity: {
     name?: string;
     shortName?: string;
@@ -325,7 +271,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     address?: string;
     phone?: string;
     admin?: string;
-    recoveryEmail?: string;
   }) => {
     if (identity.name !== undefined) setBusinessName(identity.name);
     if (identity.shortName !== undefined) setBusinessShortName(identity.shortName);
@@ -333,7 +278,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (identity.address !== undefined) setBusinessAddress(identity.address);
     if (identity.phone !== undefined) setBusinessPhone(identity.phone);
     if (identity.admin !== undefined) setAdminName(identity.admin);
-    if (identity.recoveryEmail !== undefined) setRecoveryEmail(identity.recoveryEmail);
     
     toast({ title: "Profile Updated", description: "Business identity and recovery contact saved." });
   };
@@ -477,11 +421,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, 
-      recoveryEmail, updateBusinessIdentity,
+      updateBusinessIdentity,
       uploadedPhoto, setUploadedPhoto,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, adminId, login, logout, updateAdminCredentials,
-      initiatePasswordReset, resetPasswordWithToken, recoverUserId
     }}>
       {children}
     </AppContext.Provider>
