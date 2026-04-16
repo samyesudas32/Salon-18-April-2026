@@ -1,7 +1,7 @@
 'use client';
 
 import { useApp } from '@/app/lib/store';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { ArrowDownRight, Banknote, TrendingUp } from 'lucide-react';
@@ -9,9 +9,16 @@ import { cn } from '@/lib/utils';
 
 export function DailyProfitOverview() {
   const { bookings, expenses, productExpenses } = useApp();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const metrics = useMemo(() => {
-    const now = new Date();
+    if (!now) {
+      return { revenue: 0, totalExpenses: 0, netProfit: 0 };
+    }
     const todayStr = format(now, 'yyyy-MM-dd');
 
     const todaysCompletedBookings = bookings.filter(b => b.date === todayStr && b.status === 'completed');
@@ -31,7 +38,7 @@ export function DailyProfitOverview() {
       totalExpenses,
       netProfit,
     };
-  }, [bookings, expenses, productExpenses]);
+  }, [bookings, expenses, productExpenses, now]);
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

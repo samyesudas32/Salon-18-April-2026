@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { format, eachMonthOfInterval, subMonths, startOfYear, endOfYear, getMonth, getYear, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
@@ -24,9 +24,14 @@ export function FinancialDashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalyzeFinancialReportsOutput | null>(null);
   const [tableTab, setTableTab] = useState<'daily' | 'monthly'>('monthly');
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const dailyReport = useMemo(() => {
-    const now = new Date();
+    if (!now) return [];
     const daysInMonth = eachDayOfInterval({
       start: startOfMonth(now),
       end: endOfMonth(now),
@@ -54,10 +59,10 @@ export function FinancialDashboard() {
         netProfit: revenue - totalExpenses,
       };
     });
-  }, [bookings, dailyExpenses, productExpenses]);
+  }, [bookings, dailyExpenses, productExpenses, now]);
 
   const monthlyReport = useMemo(() => {
-    const now = new Date();
+    if (!now) return [];
     const range = eachMonthOfInterval({
       start: subMonths(now, 5),
       end: now,
@@ -99,10 +104,10 @@ export function FinancialDashboard() {
         netProfit: revenue - totalExpenses,
       };
     });
-  }, [bookings, dailyExpenses, productExpenses]);
+  }, [bookings, dailyExpenses, productExpenses, now]);
 
   const annualReport = useMemo(() => {
-    const now = new Date();
+    if (!now) return { period: '', totalBookings: 0, totalRevenue: 0, totalExpenses: 0, netProfit: 0 };
     const yearStart = startOfYear(now);
     const yearEnd = endOfYear(now);
     
@@ -137,7 +142,7 @@ export function FinancialDashboard() {
       totalExpenses: totalExpenses,
       netProfit: revenue - totalExpenses,
     };
-  }, [bookings, dailyExpenses, productExpenses]);
+  }, [bookings, dailyExpenses, productExpenses, now]);
 
   const handleAIAnalysis = async () => {
     setIsAnalyzing(true);
@@ -158,12 +163,12 @@ export function FinancialDashboard() {
 
   const downloadPDF = (type: 'daily' | 'monthly' | 'annual') => {
     const doc = new jsPDF();
-    const now = new Date();
+    if (!now) return;
     const todayStr = format(now, 'yyyy-MM-dd');
     
     let title = '';
-    let tableData = [];
-    let headers = ['Description', 'Amount'];
+    let tableData: any[] = [];
+    let headers: string[] = ['Description', 'Amount'];
 
     if (type === 'daily') {
       title = `Today's Financial Status (${format(now, 'PPP')})`;
@@ -218,7 +223,7 @@ export function FinancialDashboard() {
     
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on: ${format(new Date(), 'PPP p')}`, 105, 32, { align: 'center' });
+    doc.text(`Generated on: ${format(now, 'PPP p')}`, 105, 32, { align: 'center' });
 
     autoTable(doc, {
       startY: 40,
