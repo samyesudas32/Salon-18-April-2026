@@ -62,7 +62,7 @@ export function PhotoUpload() {
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center w-full max-w-2xl h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
+        'relative flex items-center justify-center w-full max-w-[563px] h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
         {
           'border-primary bg-primary/10': isDragging,
           'border-transparent p-0': imagePreview,
