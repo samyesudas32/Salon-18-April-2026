@@ -26,6 +26,7 @@ export default function SettingsPage() {
     businessAddress,
     businessPhone,
     adminName, 
+    recoveryEmail,
     updateBusinessIdentity 
   } = useApp();
   const { toast } = useToast();
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   const [tempAddress, setTempAddress] = useState(businessAddress);
   const [tempPhone, setTempPhone] = useState(businessPhone);
   const [tempAdminName, setTempAdminName] = useState(adminName);
+  const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
 
   useEffect(() => {
     setTempAdminId(adminId);
@@ -55,7 +57,8 @@ export default function SettingsPage() {
     setTempAddress(businessAddress);
     setTempPhone(businessPhone);
     setTempAdminName(adminName);
-  }, [adminId, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName]);
+    setTempRecoveryEmail(recoveryEmail);
+  }, [adminId, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,9 +89,20 @@ export default function SettingsPage() {
       });
       return;
     }
+    
+    // Basic email validation
+    if (tempRecoveryEmail.trim() && !/^\S+@\S+\.\S+$/.test(tempRecoveryEmail)) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please enter a valid recovery email address.",
+      });
+      return;
+    }
 
     updateBusinessIdentity({ 
       admin: tempAdminName,
+      recoveryEmail: tempRecoveryEmail,
     });
   };
 
@@ -256,7 +270,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col">
                 <p className="font-bold text-lg text-primary leading-none mb-1">Administrator Profile</p>
-                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name.</p>
+                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name and recovery email.</p>
               </div>
             </div>
           </AccordionTrigger>
@@ -276,6 +290,24 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="recoveryEmail">Recovery Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="recoveryEmail"
+                      type="email"
+                      placeholder="Enter email for password recovery"
+                      className="pl-10 h-11"
+                      value={tempRecoveryEmail}
+                      onChange={(e) => setTempRecoveryEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                   <p className="text-xs text-muted-foreground pt-1">This email is used to recover your User ID and password.</p>
+                </div>
+
 
                 <Button type="submit" variant="outline" className="w-full md:w-auto px-8 h-11">
                   Update Profile Data

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Lock, User, Eye, EyeOff, LogIn } from 'lucide-react';
+import { ForgotPasswordDialog } from '@/components/auth/forgot-password-dialog';
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
@@ -96,7 +97,16 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-bold bg-primary hover:bg-primary/90 shadow-md shadow-primary/10 transition-all active:scale-[0.98] mt-2">
+
+            <div className="text-right -mt-2">
+              <ForgotPasswordDialog>
+                <Button type="button" variant="link" className="h-auto p-0 text-xs text-muted-foreground hover:text-primary">
+                  Forgot User ID or Password?
+                </Button>
+              </ForgotPasswordDialog>
+            </div>
+
+            <Button type="submit" className="w-full h-11 text-base font-bold bg-primary hover:bg-primary/90 shadow-md shadow-primary/10 transition-all active:scale-[0.98] mt-4">
               Login to System
             </Button>
           </form>
