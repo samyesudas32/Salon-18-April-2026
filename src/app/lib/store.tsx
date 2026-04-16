@@ -97,7 +97,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessAddress, setBusinessAddress] = useState<string>('West of Iron Bridge, CCSB Rd, Alappuzha, Kerala');
   const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
-  const [recoveryEmail, setRecoveryEmail] = useState<string>('');
+  const [recoveryEmail, setRecoveryEmail] = useState<string>('admin@example.com');
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
 
   // Password Reset State
