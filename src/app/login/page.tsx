@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, User, Eye, EyeOff, LogIn, Mail, Phone, AlertCircle } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, LogIn, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import { sendPasswordResetEmail } from '@/app/actions/email-actions';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +31,7 @@ export default function LoginPage() {
   const [recoveryInput, setRecoveryInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const { login, isLoggedIn, initiatePasswordReset, recoverUserId } = useApp();
+  const { login, isLoggedIn, initiatePasswordReset, recoverUserId, businessName } = useApp();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -57,38 +59,52 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      const res = initiatePasswordReset(recoveryInput);
-      if (res.success) {
-        toast({
-          title: "Recovery Initiated",
-          description: res.message,
+    // 1. Generate token and validate email in client store
+    const res = initiatePasswordReset(recoveryInput);
+    
+    if (res.success && res.token) {
+      // 2. Trigger SMTP Server Action
+      try {
+        const emailRes = await sendPasswordResetEmail({
+          email: recoveryInput,
+          token: res.token,
+          businessName: businessName
         });
-        setShowRecoverPass(false);
-        setRecoveryInput('');
-        
-        // Simulation Helper: In a real app we don't do this, but for the prototype we show the link
-        if (res.token) {
+
+        if (emailRes.success) {
           toast({
-            title: "Simulated Recovery Link",
-            description: "Click to simulate email link: /reset-password?token=" + res.token,
-            action: <Button variant="outline" size="sm" onClick={() => router.push(`/reset-password?token=${res.token}`)}>Reset Now</Button>
+            title: "Recovery Sent",
+            description: emailRes.message,
+          });
+          setShowRecoverPass(false);
+          setRecoveryInput('');
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Email Error",
+            description: emailRes.message,
           });
         }
-      } else {
+      } catch (err) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: res.message,
+          title: "System Error",
+          description: "Could not connect to the email server.",
         });
       }
-      setIsProcessing(false);
-    }, 1000);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: res.message,
+      });
+    }
+    
+    setIsProcessing(false);
   };
 
   const handleForgotUserId = (e: React.FormEvent) => {
@@ -209,7 +225,7 @@ export default function LoginPage() {
               Reset Admin Password
             </DialogTitle>
             <DialogDescription>
-              Enter your registered recovery email to receive a secure reset token.
+              Enter your registered recovery email to receive a secure reset link.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleForgotPassword} className="space-y-4 pt-4">
@@ -230,7 +246,12 @@ export default function LoginPage() {
             </div>
             <DialogFooter className="sm:justify-start">
               <Button type="submit" className="w-full h-11" disabled={isProcessing}>
-                {isProcessing ? "Processing..." : "Generate Reset Link"}
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending Email...
+                  </>
+                ) : "Send Recovery Email"}
               </Button>
             </DialogFooter>
           </form>
