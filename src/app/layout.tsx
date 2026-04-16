@@ -33,7 +33,7 @@ export default function RootLayout({
               <div className="flex min-h-screen w-full bg-background">
                 <SidebarNav />
                 <SidebarInset className="flex flex-col flex-1 overflow-hidden">
-                  <header className="grid grid-cols-3 h-32 items-center border-b border-border/40 bg-card/50 backdrop-blur-md px-6 sticky top-0 z-30">
+                  <header className="grid grid-cols-3 h-[120px] items-center border-b border-border/40 bg-card/50 backdrop-blur-md px-6 sticky top-0 z-30">
                     <div className="flex items-center gap-4 justify-start">
                       <SidebarTrigger className="-ml-1" />
                     </div>
