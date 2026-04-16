@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Server actions for handling email-related logic using Gmail SMTP.
+ * @fileOverview Server actions for handling email-related logic using Mailgun SMTP.
  * 
  * Security Best Practices:
  * - Uses environment variables for sensitive credentials.
@@ -15,7 +15,7 @@ interface SendResetEmailProps {
 }
 
 /**
- * Sends a password reset email via Gmail SMTP.
+ * Sends a password reset email via Mailgun SMTP.
  */
 export async function sendPasswordResetEmail({ email, token, businessName }: SendResetEmailProps) {
   // Use a dynamic import for nodemailer to ensure it only runs on the server side
@@ -29,10 +29,12 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.MAILGUN_SMTP_HOST,
+    port: Number(process.env.MAILGUN_SMTP_PORT || 587),
+    secure: false, // TLS requires secure: false for port 587
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: process.env.MAILGUN_SMTP_USER,
+      pass: process.env.MAILGUN_SMTP_PASS,
     },
   });
 
@@ -40,7 +42,7 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
   const mailOptions = {
-    from: `"${businessName} Admin" <${process.env.SMTP_USER || 'noreply@gmail.com'}>`,
+    from: `"${businessName} Admin" <${process.env.MAILGUN_FROM_EMAIL || 'noreply@yourdomain.com'}>`,
     to: email,
     subject: `Secure Password Reset - ${businessName}`,
     text: `Hello, you requested a password reset for your ${businessName} account. Use this link: ${resetLink}. Valid for 15 minutes.`,
@@ -63,11 +65,11 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   };
 
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log('--- Prototype Email Log (No SMTP Configured) ---');
+    if (!process.env.MAILGUN_SMTP_USER || !process.env.MAILGUN_SMTP_PASS || !process.env.MAILGUN_FROM_EMAIL) {
+      console.log('--- Prototype Email Log (No Mailgun SMTP Configured) ---');
       console.log('To:', email);
       console.log('Reset Link:', resetLink);
-      console.log('-----------------------------------------------');
+      console.log('------------------------------------------------------');
       return { success: true, message: 'Recovery email simulated (check server logs).' };
     }
 
@@ -77,7 +79,7 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
     console.error('SMTP Error:', error);
     return { 
       success: false, 
-      message: 'Failed to send email. Check your SMTP configuration.' 
+      message: 'Failed to send email. Check your Mailgun SMTP configuration.' 
     };
   }
 }
