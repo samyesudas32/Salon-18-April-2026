@@ -45,7 +45,7 @@ export function PhotoUpload() {
   };
   
   const onRemoveImage = (e: React.MouseEvent) => {
-      e.stopPropagation(); // prevent re-opening file dialog
+      e.stopPropagation();
       setImagePreview(null);
       if(fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -55,14 +55,14 @@ export function PhotoUpload() {
   const triggerFileSelect = () => fileInputRef.current?.click();
   
   const onButtonClick = (e: React.MouseEvent) => {
-      e.stopPropagation(); // prevent event bubbling to parent div
+      e.stopPropagation();
       triggerFileSelect();
   }
 
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center w-[563px] h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
+        'relative flex items-center justify-center w-full max-w-2xl h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
         {
           'border-primary bg-primary/10': isDragging,
           'border-transparent p-0': imagePreview,

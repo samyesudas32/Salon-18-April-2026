@@ -6,7 +6,6 @@
  * Security Best Practices:
  * - Uses environment variables for sensitive credentials.
  * - Reset links expire after 15 minutes.
- * - One-time use logic is handled in the application state/database.
  */
 
 interface SendResetEmailProps {
@@ -19,7 +18,15 @@ interface SendResetEmailProps {
  * Sends a password reset email via Gmail SMTP.
  */
 export async function sendPasswordResetEmail({ email, token, businessName }: SendResetEmailProps) {
-  const nodemailer = require('nodemailer');
+  // Use a dynamic import for nodemailer to ensure it only runs on the server side
+  // and doesn't interfere with the client bundle during Next.js static analysis.
+  let nodemailer;
+  try {
+    nodemailer = require('nodemailer');
+  } catch (e) {
+    console.error('Nodemailer loading error:', e);
+    return { success: false, message: 'Server configuration error.' };
+  }
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -29,7 +36,6 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
     },
   });
 
-  // Use production URL in deployment, fallback to localhost for development
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
@@ -61,7 +67,6 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
       console.log('--- Prototype Email Log (No SMTP Configured) ---');
       console.log('To:', email);
       console.log('Reset Link:', resetLink);
-      console.log('Instructions: Add SMTP_USER and SMTP_PASS (App Password) to .env to send real emails.');
       console.log('-----------------------------------------------');
       return { success: true, message: 'Recovery email simulated (check server logs).' };
     }
@@ -72,7 +77,7 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
     console.error('SMTP Error:', error);
     return { 
       success: false, 
-      message: 'Failed to send email. Check your SMTP configuration or App Password.' 
+      message: 'Failed to send email. Check your SMTP configuration.' 
     };
   }
 }

@@ -102,8 +102,6 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const duration = values.durationValue ? `${values.durationValue} ${values.durationUnit}` : '';
-    
-    // Create updates object excluding UI-only fields
     const { durationValue, durationUnit, ...rest } = values;
     
     updateServiceRecord(record.id, {
@@ -126,7 +124,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
       <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
         <DialogHeader className="pb-2 border-b">
           <DialogTitle className="text-2xl font-headline font-bold text-primary flex items-center gap-2">
-            <EditIcon className="h-6 w-6" />
+            <Pencil className="h-6 w-6" />
             Edit Service Delivery Record
           </DialogTitle>
         </DialogHeader>
@@ -213,7 +211,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                 <Briefcase className="h-3.5 w-3.5" />
                 Delivery Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div className="md:col-span-2">
                   <FormField
                     control={form.control}
@@ -237,7 +235,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   control={form.control}
                   name="staffName"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col justify-end">
+                    <FormItem>
                       <FormLabel>Attending Staff</FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -250,7 +248,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                   )}
                 />
                 
-                <div className="space-y-2 max-w-[200px]">
+                <div className="space-y-2">
                   <FormLabel>Duration</FormLabel>
                   <div className="flex gap-2 items-start">
                     <FormField
@@ -272,7 +270,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
                       control={form.control}
                       name="durationUnit"
                       render={({ field }) => (
-                        <FormItem className="w-[100px]">
+                        <FormItem className="w-[120px]">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-10">
@@ -295,10 +293,10 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <Separator />
 
-            <div className="space-y-4 bg-muted/30 p-5 rounded-xl border border-border/60 shadow-inner">
+            <div className="space-y-4 bg-muted/30 p-5 rounded-xl border border-border/60">
               <h3 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Financial Summary (Slip Details)
+                Financial Summary
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -375,7 +373,7 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
 
             <DialogFooter className="pt-4 border-t gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)} className="px-6">Cancel</Button>
-              <Button type="submit" className="bg-primary px-8">Save Slip Data</Button>
+              <Button type="submit" className="bg-primary px-8">Save Record</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -383,7 +381,3 @@ export function ServiceRecordForm({ record, trigger }: ServiceRecordFormProps) {
     </Dialog>
   );
 }
-
-const EditIcon = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22h6-6Z"/><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-);
