@@ -53,6 +53,9 @@ interface AppContextType {
     admin?: string;
     recoveryEmail?: string;
   }) => void;
+  // Photo Upload
+  uploadedPhoto: string | null;
+  setUploadedPhoto: (photo: string | null) => void;
   // Dashboard Config
   showStats: boolean;
   showRecentBookings: boolean;
@@ -98,6 +101,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
   const [recoveryEmail, setRecoveryEmail] = useState<string>('soumya@example.com');
+  const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
 
   // Recovery Simulation State
   const [activeResetToken, setActiveResetToken] = useState<ResetToken | null>(null);
@@ -142,6 +146,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessPhone = localStorage.getItem('businessPhone');
       const storedAdminName = localStorage.getItem('adminName');
       const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
+      const storedUploadedPhoto = localStorage.getItem('uploadedPhoto');
       
       const storedShowStats = localStorage.getItem('showStats');
       const storedShowBookings = localStorage.getItem('showRecentBookings');
@@ -161,6 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedBusinessPhone) setBusinessPhone(storedBusinessPhone);
       if (storedAdminName) setAdminName(storedAdminName);
       if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
+      if (storedUploadedPhoto) setUploadedPhoto(storedUploadedPhoto);
       
       if (storedShowStats !== null) setShowStats(storedShowStats === 'true');
       if (storedShowBookings !== null) setShowRecentBookings(storedShowBookings === 'true');
@@ -197,6 +203,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('adminName', adminName);
         localStorage.setItem('recoveryEmail', recoveryEmail);
         localStorage.setItem('adminPassword', adminPassword);
+
+        if (uploadedPhoto) {
+          localStorage.setItem('uploadedPhoto', uploadedPhoto);
+        } else {
+          localStorage.removeItem('uploadedPhoto');
+        }
         
         localStorage.setItem('showStats', String(showStats));
         localStorage.setItem('showRecentBookings', String(showRecentBookings));
@@ -210,7 +222,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminPassword, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminPassword, uploadedPhoto, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === 'Admin' && pass === adminPassword) {
@@ -432,6 +444,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, 
       recoveryEmail, updateBusinessIdentity,
+      uploadedPhoto, setUploadedPhoto,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, login, logout, updateAdminPassword,
       initiatePasswordReset, resetPasswordWithToken, recoverUserId

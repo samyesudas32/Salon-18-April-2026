@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, DragEvent } from 'react';
+import { useRef, ChangeEvent, DragEvent, useState } from 'react';
 import Image from 'next/image';
 import { UploadCloud, Edit, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useApp } from '@/app/lib/store';
 
 export function PhotoUpload() {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { uploadedPhoto, setUploadedPhoto } = useApp();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -15,7 +16,7 @@ export function PhotoUpload() {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        setUploadedPhoto(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -46,7 +47,7 @@ export function PhotoUpload() {
   
   const onRemoveImage = (e: React.MouseEvent) => {
       e.stopPropagation();
-      setImagePreview(null);
+      setUploadedPhoto(null);
       if(fileInputRef.current) {
           fileInputRef.current.value = '';
       }
@@ -65,13 +66,13 @@ export function PhotoUpload() {
         'relative flex items-center justify-center w-[563px] h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
         {
           'border-primary bg-primary/10': isDragging,
-          'border-transparent p-0': imagePreview,
+          'border-transparent p-0': uploadedPhoto,
         }
       )}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      onClick={!imagePreview ? triggerFileSelect : undefined}
+      onClick={!uploadedPhoto ? triggerFileSelect : undefined}
     >
       <input
         type="file"
@@ -81,10 +82,10 @@ export function PhotoUpload() {
         accept="image/*"
       />
       
-      {imagePreview ? (
+      {uploadedPhoto ? (
         <div className="group/preview relative w-full h-full">
             <Image
-                src={imagePreview}
+                src={uploadedPhoto}
                 alt="Upload preview"
                 fill
                 className="object-cover transition-transform duration-300 group-hover/preview:scale-105"
