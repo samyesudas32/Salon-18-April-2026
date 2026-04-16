@@ -24,24 +24,28 @@ Google does **not** allow you to use your regular Gmail password in third-party 
 4. **IMPORTANT**: Copy the 16-character code. You will use this in your `.env` file.
 
 ### 3. Configure Your Environment
-Add the following to your `.env` file (or Firebase environment config):
+Add the following to your `.env` file:
 
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-16-char-app-password
 NEXT_PUBLIC_BASE_URL=https://your-domain.com
 ```
 
-## 🔹 Flow of Recovery
-1. **Request**: User clicks "Forgot Password" and enters their email.
-2. **Logic**: The server generates a unique token with a 15-minute expiry.
-3. **Email**: The server uses `nodemailer` to connect to `smtp.gmail.com` and sends an HTML email.
-4. **Reset**: User clicks the link, the token is validated, and they set a new password.
+## 🔹 How it works in this app
+The code uses `nodemailer` with the `service: "gmail"` configuration:
+
+```ts
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+```
 
 ## ⚠️ Important Limitations
 - **Limit**: ~500 recipients per day for free accounts.
 - **Privacy**: The "From" address will always be your Gmail address.
-- **Scale**: If you grow beyond 100+ daily resets, consider switching to **SendGrid** or **Postmark**.
+- **Security**: Never share your App Password with anyone.

@@ -1,12 +1,12 @@
 'use server';
 
 /**
- * @fileOverview Server actions for handling email-related logic using SMTP.
+ * @fileOverview Server actions for handling email-related logic using Gmail SMTP.
  * 
  * To use Gmail SMTP:
  * 1. Enable 2-Step Verification on your Google Account.
  * 2. Generate an "App Password" at https://myaccount.google.com/apppasswords
- * 3. Set SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_PASS=your-app-password
+ * 3. Set SMTP_USER=your-email@gmail.com and SMTP_PASS=your-app-password in your .env
  */
 
 interface SendResetEmailProps {
@@ -16,7 +16,7 @@ interface SendResetEmailProps {
 }
 
 /**
- * Sends a password reset email via SMTP.
+ * Sends a password reset email via Gmail SMTP.
  * Note: In a production environment, ensure SMTP environment variables are configured.
  */
 export async function sendPasswordResetEmail({ email, token, businessName }: SendResetEmailProps) {
@@ -24,27 +24,20 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   // and doesn't cause bundling issues with the Next.js client-side analysis.
   const nodemailer = require('nodemailer');
 
-  const smtpConfig = {
-    // Gmail Example: smtp.gmail.com
-    host: process.env.SMTP_HOST || 'smtp.example.com',
-    // Gmail Example: 587 (TLS) or 465 (SSL)
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    // secure: true for 465, false for 587
-    secure: process.env.SMTP_SECURE === 'true',
+  // Using the 'service' shorthand specifically for Gmail as requested
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
     auth: {
-      user: process.env.SMTP_USER || 'noreply@example.com',
-      // CRITICAL: For Gmail, use an 'App Password', NOT your regular login password
-      pass: process.env.SMTP_PASS || 'password',
+      user: process.env.SMTP_USER, // Your Gmail address
+      pass: process.env.SMTP_PASS, // Your 16-character App Password
     },
-  };
-
-  const transporter = nodemailer.createTransport(smtpConfig);
+  });
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
   const mailOptions = {
-    from: `"${businessName} Admin" <${smtpConfig.auth.user}>`,
+    from: `"${businessName} Admin" <${process.env.SMTP_USER || 'noreply@gmail.com'}>`,
     to: email,
     subject: `Password Reset Request - ${businessName}`,
     text: `Hello, you requested a password reset for your ${businessName} account. Please use this link to set a new password: ${resetLink}. This link will expire in 15 minutes.`,
@@ -67,13 +60,13 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
   };
 
   try {
-    // In a prototype environment where SMTP might not be configured,
-    // we log the success to console to aid debugging.
-    if (process.env.NODE_ENV === 'development' && smtpConfig.host === 'smtp.example.com') {
-      console.log('--- Prototype Email Sent ---');
+    // Prototype check: if credentials aren't set, log to console instead of throwing error
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.log('--- Prototype Email Log (No SMTP Configured) ---');
       console.log('To:', email);
       console.log('Reset Link:', resetLink);
-      console.log('----------------------------');
+      console.log('Instructions: Add SMTP_USER and SMTP_PASS (App Password) to .env to send real emails.');
+      console.log('-----------------------------------------------');
       return { success: true, message: 'Recovery email simulated (check server logs).' };
     }
 
@@ -83,7 +76,7 @@ export async function sendPasswordResetEmail({ email, token, businessName }: Sen
     console.error('SMTP Error:', error);
     return { 
       success: false, 
-      message: 'Failed to send email. Ensure SMTP settings are configured in .env' 
+      message: 'Failed to send email. Ensure you used an App Password and enabled 2FA.' 
     };
   }
 }
