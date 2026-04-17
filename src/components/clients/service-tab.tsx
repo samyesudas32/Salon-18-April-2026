@@ -148,8 +148,8 @@ export function ServiceTab() {
     financialY += 7;
     
     // Separator line
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.2);
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(0.4);
     doc.line(startX, financialY - 3, endX, financialY - 3);
 
     // Total
@@ -163,7 +163,7 @@ export function ServiceTab() {
     
     // Final Separator line
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.4);
     doc.line(startX, finalFinancialY, endX, finalFinancialY);
 
     // 5. Footer with Address and Phone
