@@ -16,6 +16,7 @@ export interface Booking {
 
 export interface ServiceRecord {
   id: string;
+  bookingId?: string; // Optional link to a booking for synchronized deletion
   clientName: string;
   phoneNumber: string;
   date: string;

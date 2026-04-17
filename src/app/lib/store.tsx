@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -370,6 +371,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       totalAmount: booking.totalAmount,
       advanceAmount: booking.advanceAmount,
       balanceAmount: booking.balanceAmount,
+      bookingId: id, // Link for synchronized deletion
     });
     toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
   };
@@ -381,11 +383,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteBooking = (id: string) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
-    toast({ title: "Deleted", description: "Booking removed." });
+    // Synchronized: Delete associated service record
+    setServiceRecords((prev) => prev.filter((r) => r.bookingId !== id));
+    toast({ title: "Deleted", description: "Booking and linked service record removed." });
   };
 
   const deleteBookings = (ids: string[]) => {
     setBookings((prev) => prev.filter((b) => !ids.includes(b.id)));
+    // Synchronized: Delete associated service records
+    setServiceRecords((prev) => prev.filter((r) => !r.bookingId || !ids.includes(r.bookingId)));
     toast({ title: "Bulk Delete Successful", description: `${ids.length} records removed.` });
   };
 
@@ -400,12 +406,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteServiceRecord = (id: string) => {
+    const record = serviceRecords.find(r => r.id === id);
     setServiceRecords((prev) => prev.filter((r) => r.id !== id));
-    toast({ title: "Service Deleted", description: "Service record removed." });
+    // Synchronized: Delete associated booking if link exists
+    if (record?.bookingId) {
+      setBookings((prev) => prev.filter((b) => b.id !== record.bookingId));
+    }
+    toast({ title: "Service Deleted", description: "Service record and linked booking removed." });
   };
 
   const deleteServiceRecords = (ids: string[]) => {
+    const recordsToDelete = serviceRecords.filter(r => ids.includes(r.id));
+    const linkedBookingIds = recordsToDelete.map(r => r.bookingId).filter(Boolean) as string[];
+    
     setServiceRecords((prev) => prev.filter((r) => !ids.includes(r.id)));
+    // Synchronized: Delete associated bookings
+    if (linkedBookingIds.length > 0) {
+      setBookings((prev) => prev.filter((b) => !linkedBookingIds.includes(b.id)));
+    }
     toast({ title: "Bulk Delete Successful", description: `${ids.length} service records removed.` });
   };
 
