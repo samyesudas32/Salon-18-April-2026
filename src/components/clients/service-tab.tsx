@@ -24,6 +24,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ServiceRecord } from '@/app/lib/types';
 import { Label } from '../ui/label';
+import { Checkbox } from '../ui/checkbox';
+import { cn } from '@/lib/utils';
 
 export function ServiceTab() {
   const { 
@@ -38,6 +40,7 @@ export function ServiceTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filteredRecords = useMemo(() => {
     let records = [...serviceRecords];
@@ -72,6 +75,25 @@ export function ServiceTab() {
     
     return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [serviceRecords, searchTerm, startDate, endDate]);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredRecords.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredRecords.map(r => r.id));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    deleteServiceRecords(selectedIds);
+    setSelectedIds([]);
+  };
 
   const handleDeleteByDate = () => {
     const recordsToDelete = serviceRecords.filter(record => {
@@ -196,31 +218,27 @@ export function ServiceTab() {
     // Balance Due
     doc.text('Balance Due', startX, financialY);
     doc.text(`Rs ${(record.balanceAmount || 0).toLocaleString()}`, endX, financialY, { align: 'right' });
-    financialY += 7;
+    financialY += 8;
     
     // Separator line
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.4);
-    doc.line(startX, finalFinancialY, endX, finalFinancialY);
-    doc.line(startX, financialY - 3, endX, financialY - 3);
+    doc.line(startX, financialY, endX, financialY);
 
     // Total
+    financialY += 5;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('TOTAL SERVICE CHARGE', startX, financialY + 4);
-    doc.text(`Rs ${(record.totalAmount || 0).toLocaleString()}`, endX, financialY + 4, { align: 'right' });
+    doc.text('TOTAL SERVICE CHARGE', startX, financialY);
+    doc.text(`Rs ${(record.totalAmount || 0).toLocaleString()}`, endX, financialY, { align: 'right' });
+    financialY += 1;
+    doc.line(startX, financialY, endX, financialY);
     
     const finalFinancialY = financialY + 8;
     
-    // Final Separator line
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(0.4);
-    doc.line(startX, financialY - 3, endX, financialY - 3);
-
-
     // 5. Footer with Address and Phone
-    const footerY = Math.max(finalFinancialY + 30, 175);
+    const footerY = Math.max(finalFinancialY + 20, 175);
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -309,35 +327,35 @@ export function ServiceTab() {
         </div>
       </div>
 
-      {(startDate || endDate) && (
+      {selectedIds.length > 0 && (
         <div className="flex items-center justify-between p-4 bg-destructive/10 border-b border-destructive/20 animate-in fade-in">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-destructive flex items-center justify-center text-destructive-foreground">
               <AlertTriangle className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-bold text-destructive">Bulk Action for Date Range</p>
-              <p className="text-xs text-muted-foreground">This will affect all records within the selected date range.</p>
+              <p className="text-sm font-bold text-destructive">{selectedIds.length} Records Selected</p>
+              <p className="text-xs text-muted-foreground">This will delete the selected service records permanently.</p>
             </div>
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" className="gap-2 shadow-lg shadow-destructive/20">
                 <Trash2 className="h-4 w-4" />
-                Delete Records in Range
+                Delete Selected
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Bulk Delete Confirmation</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete all service records within the selected date range? This action is permanent and cannot be undone.
+                  Are you absolutely sure you want to delete {selectedIds.length} selected service records? This action is permanent and cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteByDate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Yes, Delete Records
+                <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Delete Selected
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -350,6 +368,13 @@ export function ServiceTab() {
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow>
+                <TableHead className="w-[50px] px-4">
+                  <Checkbox
+                    checked={filteredRecords.length > 0 && selectedIds.length === filteredRecords.length}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead className="font-bold py-4">Client Information</TableHead>
                 <TableHead className="font-bold">Schedule</TableHead>
                 <TableHead className="font-bold">Service Details</TableHead>
@@ -360,7 +385,7 @@ export function ServiceTab() {
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Briefcase className="h-10 w-10 opacity-20" />
                       <p className="text-sm font-medium">
@@ -371,7 +396,20 @@ export function ServiceTab() {
                 </TableRow>
               ) : (
                 filteredRecords.map((record) => (
-                  <TableRow key={record.id} className="hover:bg-muted/10 transition-colors group border-b border-border/30">
+                  <TableRow 
+                    key={record.id} 
+                    className={cn(
+                      "hover:bg-muted/10 transition-colors group border-b border-border/30",
+                      selectedIds.includes(record.id) && "bg-muted/40"
+                    )}
+                  >
+                    <TableCell className="px-4">
+                      <Checkbox
+                        checked={selectedIds.includes(record.id)}
+                        onCheckedChange={() => toggleSelectOne(record.id)}
+                        aria-label={`Select record for ${record.clientName}`}
+                      />
+                    </TableCell>
                     <TableCell className="py-4">
                       <div className="flex flex-col">
                         <span className="font-bold text-primary">{record.clientName}</span>
