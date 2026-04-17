@@ -2,6 +2,9 @@
 
 Professional management software for Salon of Guzellik.
 
+## 🚀 Repository
+This project is hosted at: [https://github.com/samyesudas32/17-April.git](https://github.com/samyesudas32/17-April.git)
+
 ## 🚀 Features
 - **Admin Dashboard**: Real-time stats and financial overview.
 - **Booking Management**: Track upcoming, completed, and pending appointments.
