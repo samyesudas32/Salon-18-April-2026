@@ -139,12 +139,12 @@ export function ServiceTab() {
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
     doc.text('Total Service Charge', startX, financialY);
-    doc.text(`Rs ${record.totalAmount.toLocaleString()}`, endX, financialY, { align: 'right' });
+    doc.text(`Rs ${(record.totalAmount || 0).toLocaleString()}`, endX, financialY, { align: 'right' });
     financialY += 7;
 
     // Advance
     doc.text('Advance Paid', startX, financialY);
-    doc.text(`Rs ${record.advanceAmount.toLocaleString()}`, endX, financialY, { align: 'right' });
+    doc.text(`Rs ${(record.advanceAmount || 0).toLocaleString()}`, endX, financialY, { align: 'right' });
     financialY += 7;
     
     // Separator line
@@ -157,7 +157,7 @@ export function ServiceTab() {
     doc.setFontSize(12);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text('Balance Due', startX, financialY + 4);
-    doc.text(`Rs ${record.balanceAmount.toLocaleString()}`, endX, financialY + 4, { align: 'right' });
+    doc.text(`Rs ${(record.balanceAmount || 0).toLocaleString()}`, endX, financialY + 4, { align: 'right' });
     
     const finalFinancialY = financialY + 8;
     
