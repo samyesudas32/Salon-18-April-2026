@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ServiceRecord } from '@/app/lib/types';
 
 export function ServiceTab() {
   const { 
@@ -45,7 +46,7 @@ export function ServiceTab() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [serviceRecords, searchTerm]);
 
-  const handlePrint = (record: any) => {
+  const handlePrint = (record: ServiceRecord) => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -54,7 +55,7 @@ export function ServiceTab() {
 
     const primaryColor = [33, 53, 85]; // Dark Blue
 
-    // 1. Header with branding (Editable from Settings)
+    // 1. Header with branding
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
     doc.rect(0, 0, 148, 40, 'F'); 
     
@@ -127,25 +128,46 @@ export function ServiceTab() {
     });
 
     // 4. Financial Summary
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
-    const boxWidth = 80;
-    const startX = 133 - boxWidth;
+    const finalTableY = (doc as any).lastAutoTable.finalY;
+    const startX = 148 - 15 - 80;
+    const endX = 148 - 15;
 
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(0.8);
-    doc.line(startX, finalY, 133, finalY);
+    let financialY = finalTableY + 10;
     
-    doc.setFontSize(13);
+    // Total
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total Service Charge', startX, financialY);
+    doc.text(`Rs ${record.totalAmount.toLocaleString()}`, endX, financialY, { align: 'right' });
+    financialY += 7;
+
+    // Advance
+    doc.text('Advance Paid', startX, financialY);
+    doc.text(`Rs ${record.advanceAmount.toLocaleString()}`, endX, financialY, { align: 'right' });
+    financialY += 7;
+    
+    // Separator line
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(startX, financialY - 3, endX, financialY - 3);
+
+    // Balance
     doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('Balance Due', startX, financialY + 4);
+    doc.text(`Rs ${record.balanceAmount.toLocaleString()}`, endX, financialY + 4, { align: 'right' });
     
-    doc.text('TOTAL SERVICE CHARGE', startX, finalY + 10);
-    doc.text(`Rs ${record.totalAmount?.toLocaleString() || '0'}`, 133, finalY + 10, { align: 'right' });
+    const finalFinancialY = financialY + 8;
+    
+    // Final Separator line
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(0.5);
+    doc.line(startX, finalFinancialY, endX, finalFinancialY);
 
-    doc.line(startX, finalY + 15, 133, finalY + 15);
-
-    // 5. Footer with Address and Phone (Editable from Settings)
-    const footerY = 175;
+    // 5. Footer with Address and Phone
+    const footerY = Math.max(finalFinancialY + 30, 175);
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
