@@ -109,7 +109,7 @@ export function PhotoUpload() {
           <p className="font-semibold text-primary/80">
             Click to upload or drag & drop
           </p>
-          <p className="text-xs">PNG, JPG, or GIF (max 5MB)</p>
+          <p className="text-xs">PNG, JPG, or GIF (max 5MB) 563 X 120 px</p>
         </div>
       )}
     </div>
