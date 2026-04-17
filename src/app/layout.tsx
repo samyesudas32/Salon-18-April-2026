@@ -5,7 +5,7 @@ import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { AppProvider } from '@/app/lib/store';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { PhotoUpload } from '@/components/layout/photo-upload';
+import { HeaderImage } from '@/components/layout/header-image';
 import { AdminProfileHeader } from '@/components/layout/admin-profile-header';
 
 export const metadata: Metadata = {
@@ -38,7 +38,7 @@ export default function RootLayout({
                     </div>
                     <div className="flex justify-center items-center">
                       <div className="hidden md:flex">
-                        <PhotoUpload />
+                        <HeaderImage />
                       </div>
                     </div>
                     <div className="flex items-center gap-4 justify-end">

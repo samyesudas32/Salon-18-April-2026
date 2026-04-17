@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail } from 'lucide-react';
+import { ShieldCheck, KeyRound, Eye, EyeOff, Building2, Type, User, MapPin, Phone, FileText, Mail, Image as ImageIcon } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Textarea } from '@/components/ui/textarea';
+import { PhotoUpload } from '@/components/layout/photo-upload';
 
 export default function SettingsPage() {
   const { 
@@ -258,6 +259,24 @@ export default function SettingsPage() {
                 Save Slip & Branding Changes
               </Button>
             </form>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Header Image Item */}
+        <AccordionItem value="header-image" className="border rounded-xl bg-card shadow-sm px-6">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <ImageIcon className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col">
+                <p className="font-bold text-lg text-primary leading-none mb-1">Header Image</p>
+                <p className="text-sm text-muted-foreground font-normal">Set a wide banner image for the main dashboard header.</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 pb-8 flex justify-center">
+            <PhotoUpload />
           </AccordionContent>
         </AccordionItem>
 
