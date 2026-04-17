@@ -21,25 +21,34 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function ClientHistory() {
-  const { bookings, deleteClientByName } = useApp();
+  const { bookings, serviceRecords, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const clients = useMemo(() => {
-    const uniqueClients = Array.from(new Set(bookings.map(b => b.clientName)));
-    return uniqueClients.map(name => {
-      const clientBookings = bookings.filter(b => b.clientName === name);
-      const totalSpend = clientBookings.reduce((s, b) => s + b.totalAmount, 0);
-      const pendingBalance = clientBookings.reduce((s, b) => s + b.balanceAmount, 0);
+    // Sync Logic: Combine Bookings and independent Service Records
+    const combinedRecords = [
+      ...bookings, 
+      ...serviceRecords.filter(r => !r.bookingId)
+    ];
+    
+    const uniqueNames = Array.from(new Set(combinedRecords.map(r => r.clientName)));
+    
+    return uniqueNames.map(name => {
+      const clientRecords = combinedRecords.filter(r => r.clientName === name);
+      
+      const totalSpend = clientRecords.reduce((s, r) => s + r.totalAmount, 0);
+      const pendingBalance = clientRecords.reduce((s, r) => s + r.balanceAmount, 0);
+      
       return {
         name,
-        bookingCount: clientBookings.length,
+        bookingCount: clientRecords.length,
         totalSpend,
         pendingBalance,
-        lastBooking: clientBookings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0],
-        history: clientBookings,
+        lastBooking: clientRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0],
+        history: clientRecords,
       };
     });
-  }, [bookings]);
+  }, [bookings, serviceRecords]);
 
   const filteredClients = clients.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -71,7 +80,7 @@ export function ClientHistory() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Client History?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete <strong>{client.name}</strong>? This will permanently remove their profile and all {client.bookingCount} past appointments from every dashboard view.
+                      Are you sure you want to delete <strong>{client.name}</strong>? This will permanently remove their profile and all {client.bookingCount} past entries from every dashboard view.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -92,7 +101,7 @@ export function ClientHistory() {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-headline font-bold text-primary">{client.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{client.bookingCount} total bookings</p>
+                    <p className="text-xs text-muted-foreground">{client.bookingCount} total visits</p>
                   </div>
                 </div>
                 <div className="pr-10 sm:pr-0">
@@ -110,7 +119,7 @@ export function ClientHistory() {
                     <p className="text-lg font-bold text-primary">Rs {client.totalSpend.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Last Booking</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Last Visit</p>
                     <p className="text-sm font-medium">{format(new Date(client.lastBooking.date), 'MMM dd, yyyy')}</p>
                   </div>
                 </div>
@@ -118,7 +127,7 @@ export function ClientHistory() {
                 <div>
                   <h4 className="text-xs font-bold mb-2 flex items-center gap-1">
                     <CalendarIcon className="h-3 w-3" />
-                    Booking History
+                    Visit History
                   </h4>
                   <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                     {client.history.map((h) => (

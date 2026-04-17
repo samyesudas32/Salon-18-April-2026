@@ -22,23 +22,29 @@ import {
 const REGULAR_CUSTOMER_THRESHOLD = 3; // Min bookings to be considered a regular
 
 export function RegularClientsList() {
-  const { bookings, deleteClientByName } = useApp();
+  const { bookings, serviceRecords, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const regularClients = useMemo(() => {
     const clientsMap = new Map<string, { name: string; phone: string; bookingCount: number; workTypes: Set<string> }>();
     
-    bookings.forEach(booking => {
-      if (clientsMap.has(booking.clientName)) {
-        const client = clientsMap.get(booking.clientName)!;
+    // Sync logic: Both sources contribute to loyalty status
+    const allRecords = [...bookings, ...serviceRecords.filter(r => !r.bookingId)];
+
+    allRecords.forEach(record => {
+      const name = 'clientName' in record ? record.clientName : ''; // Should always be present
+      if (!name) return;
+
+      if (clientsMap.has(name)) {
+        const client = clientsMap.get(name)!;
         client.bookingCount += 1;
-        client.workTypes.add(booking.workType);
+        client.workTypes.add(record.workType);
       } else {
-        clientsMap.set(booking.clientName, {
-          name: booking.clientName,
-          phone: booking.phoneNumber,
+        clientsMap.set(name, {
+          name,
+          phone: record.phoneNumber,
           bookingCount: 1,
-          workTypes: new Set([booking.workType]),
+          workTypes: new Set([record.workType]),
         });
       }
     });
@@ -47,7 +53,7 @@ export function RegularClientsList() {
       client => client.bookingCount >= REGULAR_CUSTOMER_THRESHOLD
     ).sort((a, b) => b.bookingCount - a.bookingCount);
 
-  }, [bookings]);
+  }, [bookings, serviceRecords]);
 
   const filteredClients = useMemo(() => {
     return regularClients.filter(client => 
@@ -88,7 +94,7 @@ export function RegularClientsList() {
           <div>
             <CardTitle>Regular Customers</CardTitle>
             <CardDescription>
-              Your most loyal clients with {REGULAR_CUSTOMER_THRESHOLD} or more bookings.
+              Your most loyal clients with {REGULAR_CUSTOMER_THRESHOLD} or more visits.
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -122,7 +128,7 @@ export function RegularClientsList() {
                 <TableHead className="font-bold">Client Name</TableHead>
                 <TableHead className="font-bold">Phone Number</TableHead>
                 <TableHead className="font-bold">Service History</TableHead>
-                <TableHead className="font-bold text-center">Total Bookings</TableHead>
+                <TableHead className="font-bold text-center">Total Visits</TableHead>
                 <TableHead className="font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -171,7 +177,7 @@ export function RegularClientsList() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Regular Profile?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Removing <strong>{client.name}</strong> will also wipe their {client.bookingCount} historical bookings and all service slips.
+                              Removing <strong>{client.name}</strong> will also wipe their {client.bookingCount} historical records and all service slips.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

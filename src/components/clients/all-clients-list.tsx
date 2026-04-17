@@ -20,11 +20,13 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function AllClientsList() {
-  const { bookings, deleteClientByName } = useApp();
+  const { bookings, serviceRecords, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const allClients = useMemo(() => {
     const clientsMap = new Map<string, { name: string; phone: string; workTypes: Set<string> }>();
+    
+    // Aggregate from Bookings
     bookings.forEach(booking => {
       if (!clientsMap.has(booking.clientName)) {
         clientsMap.set(booking.clientName, {
@@ -35,8 +37,21 @@ export function AllClientsList() {
       }
       clientsMap.get(booking.clientName)!.workTypes.add(booking.workType);
     });
+
+    // Aggregate from Service Records (captures independent entries)
+    serviceRecords.forEach(record => {
+      if (!clientsMap.has(record.clientName)) {
+        clientsMap.set(record.clientName, {
+          name: record.clientName,
+          phone: record.phoneNumber,
+          workTypes: new Set(),
+        });
+      }
+      clientsMap.get(record.clientName)!.workTypes.add(record.workType);
+    });
+
     return Array.from(clientsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [bookings]);
+  }, [bookings, serviceRecords]);
 
   const filteredClients = useMemo(() => {
     return allClients.filter(client => 

@@ -379,6 +379,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
     setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    
+    // SYNC: Update linked service record
+    setServiceRecords((prev) => prev.map((r) => {
+      if (r.bookingId === id) {
+        return {
+          ...r,
+          clientName: updates.clientName ?? r.clientName,
+          phoneNumber: updates.phoneNumber ?? r.phoneNumber,
+          date: updates.date ?? r.date,
+          time: updates.time ?? r.time,
+          workType: updates.workType ?? r.workType,
+          totalAmount: updates.totalAmount ?? r.totalAmount,
+          advanceAmount: updates.advanceAmount ?? r.advanceAmount,
+          balanceAmount: updates.balanceAmount ?? r.balanceAmount,
+        };
+      }
+      return r;
+    }));
+    
     toast({ title: "Updated", description: "Booking details updated." });
   };
 
@@ -402,8 +421,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateServiceRecord = (id: string, updates: Partial<ServiceRecord>) => {
+    const currentRecord = serviceRecords.find(r => r.id === id);
     setServiceRecords((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
-    toast({ title: "Service Updated", description: "Service record updated." });
+    
+    // SYNC: Update linked booking if it exists
+    if (currentRecord?.bookingId) {
+      setBookings((prev) => prev.map((b) => {
+        if (b.id === currentRecord.bookingId) {
+          return {
+            ...b,
+            clientName: updates.clientName ?? b.clientName,
+            phoneNumber: updates.phoneNumber ?? b.phoneNumber,
+            date: updates.date ?? b.date,
+            time: updates.time ?? b.time,
+            workType: updates.workType ?? b.workType,
+            totalAmount: updates.totalAmount ?? b.totalAmount,
+            advanceAmount: updates.advanceAmount ?? b.advanceAmount,
+            balanceAmount: updates.balanceAmount ?? b.balanceAmount,
+          };
+        }
+        return b;
+      }));
+    }
+    toast({ title: "Service Updated", description: "Service record and linked booking updated." });
   };
 
   const deleteServiceRecord = (id: string) => {
