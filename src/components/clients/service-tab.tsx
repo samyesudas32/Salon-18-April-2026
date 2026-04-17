@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer } from 'lucide-react';
+import { Clock, Search, Briefcase, Trash2, Hourglass, Phone, Printer, Calendar, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ServiceRecordForm } from './service-record-form';
 import {
   AlertDialog,
@@ -23,28 +23,79 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ServiceRecord } from '@/app/lib/types';
+import { Label } from '../ui/label';
 
 export function ServiceTab() {
   const { 
     serviceRecords, 
-    deleteServiceRecord, 
+    deleteServiceRecord,
+    deleteServiceRecords,
     businessName, 
     businessDescription, 
     businessAddress, 
     businessPhone 
   } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const filteredRecords = useMemo(() => {
-    return serviceRecords
-      .filter(record => 
+    let records = [...serviceRecords];
+
+    // Date range filtering
+    if (startDate || endDate) {
+      records = records.filter((record) => {
+        const recordDate = parseISO(record.date);
+        const start = startDate ? startOfDay(parseISO(startDate)) : null;
+        const end = endDate ? endOfDay(parseISO(endDate)) : null;
+
+        if (start && end) {
+          return isWithinInterval(recordDate, { start, end });
+        } else if (start) {
+          return recordDate >= start;
+        } else if (end) {
+          return recordDate <= end;
+        }
+        return true;
+      });
+    }
+
+    // Search term filtering
+    if (searchTerm) {
+      records = records.filter(record => 
         record.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.workType.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (record.phoneNumber && record.phoneNumber.includes(searchTerm)) ||
         (record.staffName && record.staffName.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [serviceRecords, searchTerm]);
+      );
+    }
+    
+    return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [serviceRecords, searchTerm, startDate, endDate]);
+
+  const handleDeleteByDate = () => {
+    const recordsToDelete = serviceRecords.filter(record => {
+      if (!startDate && !endDate) return false;
+      const recordDate = parseISO(record.date);
+      const start = startDate ? startOfDay(parseISO(startDate)) : null;
+      const end = endDate ? endOfDay(parseISO(endDate)) : null;
+      if (start && end) {
+        return isWithinInterval(recordDate, { start, end });
+      } else if (start) {
+        return recordDate >= start;
+      } else if (end) {
+        return recordDate <= end;
+      }
+      return false;
+    });
+
+    const idsToDelete = recordsToDelete.map(r => r.id);
+    if (idsToDelete.length > 0) {
+      deleteServiceRecords(idsToDelete);
+      setStartDate('');
+      setEndDate('');
+    }
+  };
 
   const handlePrint = (record: ServiceRecord) => {
     const doc = new jsPDF({
@@ -150,6 +201,7 @@ export function ServiceTab() {
     // Separator line
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.4);
+    doc.line(startX, finalFinancialY, endX, finalFinancialY);
     doc.line(startX, financialY - 3, endX, financialY - 3);
 
     // Total
@@ -164,7 +216,8 @@ export function ServiceTab() {
     // Final Separator line
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.4);
-    doc.line(startX, finalFinancialY, endX, finalFinancialY);
+    doc.line(startX, financialY - 3, endX, financialY - 3);
+
 
     // 5. Footer with Address and Phone
     const footerY = Math.max(finalFinancialY + 30, 175);
@@ -218,6 +271,80 @@ export function ServiceTab() {
           </div>
         </div>
       </CardHeader>
+      
+      <div className="bg-card p-4 md:p-6 border-y border-border/40">
+        <div className="flex flex-wrap items-end gap-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2">
+              <Calendar className="h-3 w-3" />
+              From Date
+            </Label>
+            <Input 
+              type="date" 
+              className="w-[180px] bg-background" 
+              value={startDate} 
+              onChange={(e) => setStartDate(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2">
+              <Calendar className="h-3 w-3" />
+              To Date
+            </Label>
+            <Input 
+              type="date" 
+              className="w-[180px] bg-background" 
+              value={endDate} 
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-muted-foreground hover:text-primary mb-1"
+            onClick={() => { setStartDate(''); setEndDate(''); }}
+          >
+            Clear Date Filter
+          </Button>
+        </div>
+      </div>
+
+      {(startDate || endDate) && (
+        <div className="flex items-center justify-between p-4 bg-destructive/10 border-b border-destructive/20 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-destructive flex items-center justify-center text-destructive-foreground">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-destructive">Bulk Action for Date Range</p>
+              <p className="text-xs text-muted-foreground">This will affect all records within the selected date range.</p>
+            </div>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-2 shadow-lg shadow-destructive/20">
+                <Trash2 className="h-4 w-4" />
+                Delete Records in Range
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Bulk Delete Confirmation</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete all service records within the selected date range? This action is permanent and cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteByDate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Delete Records
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
       <CardContent className="p-0">
         <div className="rounded-none border-t border-border/40">
           <Table>
@@ -237,7 +364,7 @@ export function ServiceTab() {
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Briefcase className="h-10 w-10 opacity-20" />
                       <p className="text-sm font-medium">
-                        {searchTerm ? "No matching records found." : "No service records available yet."}
+                        {searchTerm || startDate || endDate ? "No matching records found." : "No service records available yet."}
                       </p>
                     </div>
                   </TableCell>

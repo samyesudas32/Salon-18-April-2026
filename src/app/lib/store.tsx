@@ -19,6 +19,7 @@ interface AppContextType {
   addServiceRecord: (record: Omit<ServiceRecord, 'id'>) => void;
   updateServiceRecord: (id: string, record: Partial<ServiceRecord>) => void;
   deleteServiceRecord: (id: string) => void;
+  deleteServiceRecords: (ids: string[]) => void;
   // Expense state
   expenses: Expense[];
   addExpense: (expense: Omit<Expense, 'id'>) => void;
@@ -403,6 +404,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: "Service Deleted", description: "Service record removed." });
   };
 
+  const deleteServiceRecords = (ids: string[]) => {
+    setServiceRecords((prev) => prev.filter((r) => !ids.includes(r.id)));
+    toast({ title: "Bulk Delete Successful", description: `${ids.length} service records removed.` });
+  };
+
   const addExpense = (newExpense: Omit<Expense, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
     setExpenses((prev) => [{ ...newExpense, id }, ...prev]);
@@ -470,7 +476,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={{ 
       bookings, addBooking, updateBooking, deleteBooking, deleteBookings,
-      serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord,
+      serviceRecords, addServiceRecord, updateServiceRecord, deleteServiceRecord, deleteServiceRecords,
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
       businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail,
