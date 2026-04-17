@@ -61,7 +61,7 @@ export default function DashboardPage() {
                 checked={showDailyProfit}
                 onCheckedChange={() => toggleDashboardSection('dailyProfit')}
               >
-                Daily Profit Overview
+                Daily Income Overview
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={showRecentBookings}
@@ -111,7 +111,7 @@ export default function DashboardPage() {
                   <TrendingUp className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-headline font-bold text-primary">Daily Profit Overview</h2>
+                  <h2 className="text-xl font-headline font-bold text-primary">Daily Income Overview</h2>
                   <p className="text-sm text-muted-foreground">Today's financial breakdown and net result</p>
                 </div>
               </div>
