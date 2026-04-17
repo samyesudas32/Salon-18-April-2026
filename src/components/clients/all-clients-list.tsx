@@ -4,12 +4,23 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Phone, Briefcase, Search, Download } from 'lucide-react';
+import { User, Phone, Briefcase, Search, Download, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function AllClientsList() {
-  const { bookings } = useApp();
+  const { bookings, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const allClients = useMemo(() => {
@@ -97,12 +108,13 @@ export function AllClientsList() {
                 <TableHead className="font-bold">Client Name</TableHead>
                 <TableHead className="font-bold">Phone Number</TableHead>
                 <TableHead className="font-bold">Service History</TableHead>
+                <TableHead className="font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
                     {searchTerm ? "No matching clients found." : "No clients found."}
                   </TableCell>
                 </TableRow>
@@ -126,6 +138,29 @@ export function AllClientsList() {
                         <Briefcase className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                         <span className="line-clamp-2">{Array.from(client.workTypes).join(', ')}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Client Profile?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently remove <strong>{client.name}</strong> and all their associated bookings and service slips from the system.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteClientByName(client.name)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Delete Everything
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))

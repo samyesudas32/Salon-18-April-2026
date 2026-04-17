@@ -1,15 +1,27 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, User, Calendar as CalendarIcon } from 'lucide-react';
+import { Search, User, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/app/lib/store';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function ClientHistory() {
-  const { bookings } = useApp();
+  const { bookings, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const clients = useMemo(() => {
@@ -47,7 +59,31 @@ export function ClientHistory() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {filteredClients.map((client) => (
-          <Card key={client.name} className="border-none shadow-sm">
+          <Card key={client.name} className="border-none shadow-sm relative group overflow-hidden">
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Client History?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete <strong>{client.name}</strong>? This will permanently remove their profile and all {client.bookingCount} past appointments from every dashboard view.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Client</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteClientByName(client.name)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete Profile
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -59,9 +95,11 @@ export function ClientHistory() {
                     <p className="text-xs text-muted-foreground">{client.bookingCount} total bookings</p>
                   </div>
                 </div>
-                <Badge variant={client.pendingBalance > 0 ? "outline" : "default"} className={client.pendingBalance > 0 ? "text-orange-600 border-orange-200" : "bg-green-100 text-green-700"}>
-                  {client.pendingBalance > 0 ? `Rs ${client.pendingBalance} Due` : 'Paid'}
-                </Badge>
+                <div className="pr-10 sm:pr-0">
+                  <Badge variant={client.pendingBalance > 0 ? "outline" : "default"} className={client.pendingBalance > 0 ? "text-orange-600 border-orange-200" : "bg-green-100 text-green-700"}>
+                    {client.pendingBalance > 0 ? `Rs ${client.pendingBalance} Due` : 'Paid'}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

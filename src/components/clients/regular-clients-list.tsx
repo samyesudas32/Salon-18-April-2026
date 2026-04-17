@@ -4,14 +4,25 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/app/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { User, Phone, Repeat, Briefcase, Search, Download } from 'lucide-react';
+import { User, Phone, Repeat, Briefcase, Search, Download, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const REGULAR_CUSTOMER_THRESHOLD = 3; // Min bookings to be considered a regular
 
 export function RegularClientsList() {
-  const { bookings } = useApp();
+  const { bookings, deleteClientByName } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
 
   const regularClients = useMemo(() => {
@@ -112,12 +123,13 @@ export function RegularClientsList() {
                 <TableHead className="font-bold">Phone Number</TableHead>
                 <TableHead className="font-bold">Service History</TableHead>
                 <TableHead className="font-bold text-center">Total Bookings</TableHead>
+                <TableHead className="font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     {searchTerm ? "No matching regulars found." : "No regular clients found yet."}
                   </TableCell>
                 </TableRow>
@@ -147,6 +159,29 @@ export function RegularClientsList() {
                         <Repeat className="h-4 w-4 text-primary" />
                         <span className="font-bold text-primary">{client.bookingCount}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Regular Profile?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Removing <strong>{client.name}</strong> will also wipe their {client.bookingCount} historical bookings and all service slips.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteClientByName(client.name)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Wipe All Records
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))
