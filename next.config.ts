@@ -30,10 +30,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: [
-    'https://9000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-    'https://6000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-  ],
+  experimental: {
+    allowedDevOrigins: [
+      'https://9000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+      'https://6000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+    ],
+  }
 };
 
 export default nextConfig;
