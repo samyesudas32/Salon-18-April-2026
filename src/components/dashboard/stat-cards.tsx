@@ -118,17 +118,17 @@ export function StatCards() {
   }, [bookings, expenses, productExpenses, now]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.label} className={cn("border bg-card shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden", stat.borderColor)}>
-          <CardContent className="p-8">
+          <CardContent className="p-5 md:p-8">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-3 flex-1">
-                <p className="text-sm font-semibold text-muted-foreground leading-snug">{stat.label}</p>
-                <h3 className="text-3xl font-black text-primary tracking-tight">{stat.value}</h3>
+              <div className="space-y-1.5 md:space-y-3 flex-1">
+                <p className="text-xs md:text-sm font-semibold text-muted-foreground leading-snug">{stat.label}</p>
+                <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">{stat.value}</h3>
               </div>
-              <div className={cn("p-4 rounded-2xl transition-all group-hover:scale-110 flex items-center justify-center shrink-0 shadow-sm", stat.bg, stat.color)}>
-                <stat.icon className="h-7 w-7" />
+              <div className={cn("p-3 md:p-4 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm", stat.bg, stat.color)}>
+                <stat.icon className="h-5 w-5 md:h-7 md:w-7" />
               </div>
             </div>
           </CardContent>

@@ -63,7 +63,7 @@ export function PhotoUpload() {
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center w-[563px] h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
+        'relative flex items-center justify-center w-full max-w-[563px] h-[120px] rounded-lg border-2 border-dashed border-border bg-muted/20 text-center transition-all duration-300 overflow-hidden group/upload',
         {
           'border-primary bg-primary/10': isDragging,
           'border-transparent p-0': uploadedPhoto,
@@ -104,12 +104,12 @@ export function PhotoUpload() {
             </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-2 cursor-pointer text-muted-foreground group-hover/upload:text-primary transition-colors">
+        <div className="flex flex-col items-center justify-center space-y-2 cursor-pointer text-muted-foreground group-hover/upload:text-primary transition-colors p-4">
           <UploadCloud className="h-8 w-8 text-primary/50 group-hover/upload:text-primary transition-colors" />
-          <p className="font-semibold text-primary/80">
-            Click to upload or drag & drop
+          <p className="font-semibold text-primary/80 text-sm">
+            Click or drag banner image here
           </p>
-          <p className="text-xs">PNG, JPG, or GIF (max 5MB) 563 X 120 px</p>
+          <p className="text-[10px]">Recommended: 563 X 120 px</p>
         </div>
       )}
     </div>
