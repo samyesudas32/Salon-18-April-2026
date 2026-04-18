@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -30,14 +29,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    allowedDevOrigins: [
-      'https://9000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-      'https://6000-firebase-orginal-backup-1-1776339999573.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-      'https://9000-firebase-orginal-backup-2-1776416699029.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-      'https://6000-firebase-orginal-backup-2-1776416699029.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-    ],
-  }
 };
 
 export default nextConfig;
