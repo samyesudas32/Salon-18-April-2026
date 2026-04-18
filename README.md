@@ -3,7 +3,7 @@
 Professional management software for Salon of Guzellik.
 
 ## 🚀 Repository
-This project is hosted at: [https://github.com/samyesudas32/17-April.git](https://github.com/samyesudas32/17-April.git)
+This project is hosted at: [https://github.com/samyesudas32/Salon-18-April-2026.git](https://github.com/samyesudas32/Salon-18-April-2026.git)
 
 ## 🚀 Features
 - **Admin Dashboard**: Real-time stats and financial overview.
