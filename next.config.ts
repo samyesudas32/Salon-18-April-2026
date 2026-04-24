@@ -29,6 +29,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        '6000-firebase-orginal-backup-d-1-1776419707065.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+        '9002-firebase-orginal-backup-d-1-1776419707065.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+        '1776419707065.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+      ],
+    },
+  },
 };
 
 export default nextConfig;
