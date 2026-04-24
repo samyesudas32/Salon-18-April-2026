@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -10,7 +11,7 @@ export type DashboardSection = 'stats' | 'bookings' | 'completedHistory' | 'serv
 
 interface AppContextType {
   bookings: Booking[];
-  addBooking: (booking: Omit<Booking, 'id'>) => void;
+  addBooking: (booking: Omit<Booking, 'id'>, sendSMS?: boolean) => void;
   updateBooking: (id: string, booking: Partial<Booking>) => void;
   deleteBooking: (id: string) => void;
   deleteBookings: (ids: string[]) => void;
@@ -74,6 +75,8 @@ interface AppContextType {
   generatePasswordResetToken: () => string | null;
   verifyPasswordResetToken: (token: string) => boolean;
   resetPasswordWithToken: (token: string, newPass: string) => boolean;
+  // SMS Utility
+  triggerSMS: (mobile: string, variables: Record<string, string>) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -357,7 +360,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const addBooking = (newBooking: Omit<Booking, 'id'>) => {
+  const triggerSMS = async (mobile: string, variables: Record<string, string>) => {
+    try {
+      const response = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, variables }),
+      });
+      return response.ok;
+    } catch (e) {
+      console.error('Failed to trigger SMS:', e);
+      return false;
+    }
+  };
+
+  const addBooking = (newBooking: Omit<Booking, 'id'>, sendSMS = false) => {
     const id = Math.random().toString(36).substr(2, 9);
     const booking = { ...newBooking, id };
     setBookings((prev) => [...prev, booking]);
@@ -374,7 +391,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       balanceAmount: booking.balanceAmount,
       bookingId: id, // Link for synchronized deletion
     });
-    toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
+    
+    if (sendSMS && booking.phoneNumber) {
+      triggerSMS(booking.phoneNumber, {
+        name: booking.clientName,
+        service: booking.workType,
+        date: booking.date,
+        time: booking.time,
+      }).then(success => {
+        if (success) {
+          toast({ title: "Booking Saved", description: "Appointment created and SMS notification sent." });
+        } else {
+          toast({ title: "Booking Saved", description: "Appointment created, but SMS failed. Check MSG91 config." });
+        }
+      });
+    } else {
+      toast({ title: "Booking Saved", description: "Appointment and initial Service Record created." });
+    }
   };
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
@@ -554,6 +587,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
       isLoggedIn, adminId, login, logout, updateAdminCredentials,
       generatePasswordResetToken, verifyPasswordResetToken, resetPasswordWithToken,
+      triggerSMS,
     }}>
       {children}
     </AppContext.Provider>

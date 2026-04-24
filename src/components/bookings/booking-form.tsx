@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Calculator, CalendarIcon, Phone, User, Briefcase, IndianRupee, AlignLeft, Clock } from 'lucide-react';
+import { Plus, Calculator, CalendarIcon, Phone, User, Briefcase, IndianRupee, AlignLeft, Clock, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -36,6 +36,7 @@ import { useApp } from '@/app/lib/store';
 import { Booking } from '@/app/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   clientName: z.string().min(2, 'Name is required'),
@@ -49,6 +50,7 @@ const formSchema = z.object({
   balanceAmount: z.coerce.number(),
   notes: z.string().optional(),
   status: z.enum(['upcoming', 'completed', 'pending']),
+  sendSMS: z.boolean().default(false),
 });
 
 interface BookingFormProps {
@@ -74,6 +76,7 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
       balanceAmount: booking?.balanceAmount || 0,
       notes: booking?.notes || '',
       status: booking?.status || 'upcoming',
+      sendSMS: false,
     },
   });
 
@@ -91,6 +94,7 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
         balanceAmount: booking.balanceAmount,
         notes: booking.notes,
         status: booking.status,
+        sendSMS: false,
       });
     }
   }, [booking, form, open]);
@@ -103,16 +107,17 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const { sendSMS, ...bookingData } = values;
     if (booking) {
       updateBooking(booking.id, {
-        ...values,
+        ...bookingData,
         notes: values.notes || '',
       });
     } else {
       addBooking({
-        ...values,
+        ...bookingData,
         notes: values.notes || '',
-      });
+      }, sendSMS);
       form.reset();
     }
     setOpen(false);
@@ -392,6 +397,35 @@ export function BookingForm({ booking, trigger }: BookingFormProps) {
                   )}
                 />
               </div>
+
+              {!booking && (
+                <>
+                  <Separator className="opacity-20" />
+                  <FormField
+                    control={form.control}
+                    name="sendSMS"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 bg-primary/5">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="flex items-center gap-2 text-primary font-bold">
+                            <MessageSquare className="h-4 w-4" />
+                            Send SMS Confirmation
+                          </FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            Trigger an automated MSG91 notification to the client.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
 
             <DialogFooter className="pt-2 gap-2">
