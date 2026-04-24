@@ -27,6 +27,7 @@ export default function SettingsPage() {
     businessAddress,
     businessPhone,
     adminName, 
+    adminPhone,
     recoveryEmail,
     updateBusinessIdentity 
   } = useApp();
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const [tempAddress, setTempAddress] = useState(businessAddress);
   const [tempPhone, setTempPhone] = useState(businessPhone);
   const [tempAdminName, setTempAdminName] = useState(adminName);
+  const [tempAdminPhone, setTempAdminPhone] = useState(adminPhone);
   const [tempRecoveryEmail, setTempRecoveryEmail] = useState(recoveryEmail);
 
   useEffect(() => {
@@ -58,8 +60,9 @@ export default function SettingsPage() {
     setTempAddress(businessAddress);
     setTempPhone(businessPhone);
     setTempAdminName(adminName);
+    setTempAdminPhone(adminPhone);
     setTempRecoveryEmail(recoveryEmail);
-  }, [adminId, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail]);
+  }, [adminId, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, adminPhone, recoveryEmail]);
 
   const handleSaveBranding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +106,7 @@ export default function SettingsPage() {
 
     updateBusinessIdentity({ 
       admin: tempAdminName,
+      adminPhone: tempAdminPhone,
       recoveryEmail: tempRecoveryEmail,
     });
   };
@@ -289,7 +293,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col">
                 <p className="font-bold text-lg text-primary leading-none mb-1">Administrator Profile</p>
-                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name and recovery email.</p>
+                <p className="text-sm text-muted-foreground font-normal">Manage the administrative name, phone for OTP, and recovery email.</p>
               </div>
             </div>
           </AccordionTrigger>
@@ -308,6 +312,22 @@ export default function SettingsPage() {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="adminPhone">Phone Number (for OTP)</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="adminPhone"
+                      type="tel"
+                      placeholder="Enter phone number for OTP verification"
+                      className="pl-10 h-11"
+                      value={tempAdminPhone}
+                      onChange={(e) => setTempAdminPhone(e.target.value)}
+                    />
+                  </div>
+                   <p className="text-xs text-muted-foreground pt-1">Used for multi-factor authentication and security alerts.</p>
                 </div>
 
                 <div className="space-y-2">

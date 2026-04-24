@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -42,6 +41,7 @@ interface AppContextType {
   businessAddress: string;
   businessPhone: string;
   adminName: string;
+  adminPhone: string;
   recoveryEmail: string;
   updateBusinessIdentity: (identity: {
     name?: string;
@@ -50,6 +50,7 @@ interface AppContextType {
     address?: string;
     phone?: string;
     admin?: string;
+    adminPhone?: string;
     recoveryEmail?: string;
   }) => void;
   // Photo Upload
@@ -103,6 +104,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [businessAddress, setBusinessAddress] = useState<string>('West of Iron Bridge, CCSB Rd, Alappuzha, Kerala');
   const [businessPhone, setBusinessPhone] = useState<string>('7025 80 1010, 755 88 74175');
   const [adminName, setAdminName] = useState<string>('Soumya Yesudas');
+  const [adminPhone, setAdminPhone] = useState<string>('');
   const [recoveryEmail, setRecoveryEmail] = useState<string>('admin@example.com');
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
 
@@ -150,6 +152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedBusinessAddr = localStorage.getItem('businessAddress');
       const storedBusinessPhone = localStorage.getItem('businessPhone');
       const storedAdminName = localStorage.getItem('adminName');
+      const storedAdminPhone = localStorage.getItem('adminPhone');
       const storedRecoveryEmail = localStorage.getItem('recoveryEmail');
       const storedUploadedPhoto = localStorage.getItem('uploadedPhoto');
       
@@ -171,6 +174,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedBusinessAddr) setBusinessAddress(storedBusinessAddr);
       if (storedBusinessPhone) setBusinessPhone(storedBusinessPhone);
       if (storedAdminName) setAdminName(storedAdminName);
+      if (storedAdminPhone) setAdminPhone(storedAdminPhone);
       if (storedRecoveryEmail) setRecoveryEmail(storedRecoveryEmail);
       if (storedUploadedPhoto) setUploadedPhoto(storedUploadedPhoto);
       if (storedResetToken) setPasswordResetToken(storedResetToken);
@@ -208,6 +212,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessAddress', businessAddress);
         localStorage.setItem('businessPhone', businessPhone);
         localStorage.setItem('adminName', adminName);
+        localStorage.setItem('adminPhone', adminPhone);
         localStorage.setItem('recoveryEmail', recoveryEmail);
         localStorage.setItem('adminId', adminId);
         localStorage.setItem('adminPassword', adminPassword);
@@ -235,7 +240,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to save state to localStorage", e);
       }
     }
-  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail, adminId, adminPassword, uploadedPhoto, passwordResetToken, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
+  }, [bookings, serviceRecords, expenses, productExpenses, businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, adminPhone, recoveryEmail, adminId, adminPassword, uploadedPhoto, passwordResetToken, showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, isHydrated]);
 
   const login = (userId: string, pass: string) => {
     if (userId === adminId && pass === adminPassword) {
@@ -297,6 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     address?: string;
     phone?: string;
     admin?: string;
+    adminPhone?: string;
     recoveryEmail?: string;
   }) => {
     if (identity.name !== undefined) setBusinessName(identity.name);
@@ -305,6 +311,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (identity.address !== undefined) setBusinessAddress(identity.address);
     if (identity.phone !== undefined) setBusinessPhone(identity.phone);
     if (identity.admin !== undefined) setAdminName(identity.admin);
+    if (identity.adminPhone !== undefined) setAdminPhone(identity.adminPhone);
     if (identity.recoveryEmail !== undefined) setRecoveryEmail(identity.recoveryEmail);
     
     toast({ title: "Profile Updated", description: "Business identity and recovery contact saved." });
@@ -581,7 +588,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       deleteClientByName,
       expenses, addExpense, updateExpense, deleteExpense, deleteExpenses,
       productExpenses, addProductExpense, updateProductExpense, deleteProductExpense, deleteProductExpenses,
-      businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, recoveryEmail,
+      businessName, businessShortName, businessDescription, businessAddress, businessPhone, adminName, adminPhone, recoveryEmail,
       updateBusinessIdentity,
       uploadedPhoto, setUploadedPhoto,
       showStats, showRecentBookings, showCompletedHistory, showServiceSection, showExpenses, showProductExpenses, showReports, showDailyProfit, toggleDashboardSection,
