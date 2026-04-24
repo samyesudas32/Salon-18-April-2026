@@ -1,134 +1,175 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model. In this "Authorization Independence" 
- * architecture, all application data is silioed under a specific user's root document. This ensures 
- * that security is determined by the path itself, making rules performant and easy to reason about.
- *
- * Data Structure: All data is organized hierarchically under the `/users/{userId}` path. 
- * Specific entities like Clients, WorkTypes, Bookings, and Backups exist as subcollections 
- * of the user who owns them (e.g., `/users/{userId}/bookings/{bookingId}`).
- *
- * Key Security Decisions:
- * 1. Default Posture: All data is private by default. There is no public reading or listing of user data.
- * 2. Path-Based Authorization: The `{userId}` wildcard in the path is compared directly against 
- *    the authenticated user's UID (`request.auth.uid`).
- * 3. Administrative Lockdown: No global admin roles are defined; every user is the sole administrator of 
- *    their own data tree.
- * 4. Relational Integrity: On document creation, the rules enforce that internal 'id' fields match 
- *    the Firestore document ID to ensure consistency between the data and the path.
- *
- * Denormalization for Authorization:
- * Because the data is nested under the user's ID, the path itself provides the necessary context 
- * for authorization. This avoids the need for expensive `get()` calls to look up ownership 
- * on parent or related documents.
- */
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * ServiceFlow Hub Security Rules
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset implements a robust Role-Based Access Control (RBAC) system for ServiceFlow Hub.
+     * It prioritizes high authorization security while maintaining flexibility for data schemas 
+     * during the prototyping phase.
+     *
+     * DATA STRUCTURE:
+     * - User-centric data is stored under /userProfiles/{userId}.
+     * - Authorization roles are managed via dedicated marker collections (/adminRoles and /staffRoles).
+     * - Operational data (Clients, WorkTypes) are top-level collections accessible by authorized staff.
+     * - Transactional data (Bookings) is nested under Clients for efficient historical lookups.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. Authorization Independence: We use dedicated "Role Collections" (/adminRoles/{uid}) to 
+     *    enable fast exists() checks. This avoids expensive get() calls and allows security 
+     *    rules to remain atomic.
+     * 2. Identity Verification: All access is strictly tied to Firebase Authentication (request.auth).
+     * 3. Relational Integrity: Bookings must include a 'clientId' field that matches the path 
+     *    to ensure consistency for collectionGroup queries used in dashboards.
+     * 4. State Safety: Update and delete operations strictly require the resource to exist 
+     *    to prevent orphans or logic errors.
+     */
+
     // --- Helper Functions ---
 
-    /**
-     * @description Checks if the request is made by an authenticated user.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     * @param userId The UID of the user who owns the resource.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * @description Combines ownership check with existence check for updates and deletes.
-     * @param userId The UID of the user who owns the resource.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/adminRoles/$(request.auth.uid));
     }
 
-    /**
-     * @description Enforces immutability for critical relational fields.
-     */
-    function isUnchanged(field) {
-      return request.resource.data[field] == resource.data[field];
+    function isStaff() {
+      return isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid));
+    }
+
+    function isAuthorizedPersonnel() {
+      return isAdmin() || isStaff();
+    }
+
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    function isValidRoleUpdate() {
+      // Role marker collections are typically managed by backend processes.
+      // Prototyping Mode: Restricting write access to prevent self-elevation.
+      return false;
     }
 
     // --- Collection Rules ---
 
     /**
-     * @description Rules for the root user document.
-     * @path /users/{userId}
-     * @allow (get, create, update, delete) if user is the owner.
-     * @deny (list) to prevent user enumeration.
-     * @principle Self-creation and strict ownership of the profile root.
+     * @description Rules for user-specific profile data. Users can manage their own profiles.
+     * @path /userProfiles/{userId}
+     * @allow (get, update) if the authenticated UID matches the profile UID.
+     * @deny (create) if the user attempts to create a profile for a different UID.
+     * @principle Restricts access to a user's own data tree and enforces path-to-data consistency.
      */
-    match /users/{userId} {
+    match /userProfiles/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false; // Users cannot be listed/searched.
+      allow list: if isAuthorizedPersonnel();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && isUnchanged('id');
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Marker collection for Administrative roles. Used for fast 'exists()' checks.
+     * @path /adminRoles/{userId}
+     * @allow (get) for the user themselves or authorized personnel.
+     * @deny (write) users cannot elevate their own permissions.
+     * @principle Role-Based Access Control via structural segregation.
+     */
+    match /adminRoles/{userId} {
+      allow get: if isOwner(userId) || isAuthorizedPersonnel();
+      allow list: if isAuthorizedPersonnel();
+      allow create, update, delete: if isValidRoleUpdate();
+    }
+
+    /**
+     * @description Marker collection for Staff roles. Used for fast 'exists()' checks.
+     * @path /staffRoles/{userId}
+     * @allow (get) for the user themselves or authorized personnel.
+     * @deny (write) users cannot elevate their own permissions.
+     * @principle Role-Based Access Control via structural segregation.
+     */
+    match /staffRoles/{userId} {
+      allow get: if isOwner(userId) || isAuthorizedPersonnel();
+      allow list: if isAuthorizedPersonnel();
+      allow create, update, delete: if isValidRoleUpdate();
+    }
+
+    /**
+     * @description Management of the client database.
+     * @path /clients/{clientId}
+     * @allow (read, write) for any user with an Admin or Staff role.
+     * @deny (all) for non-authorized personnel or unauthenticated users.
+     * @principle Global access for specific roles to a flat collection.
+     */
+    match /clients/{clientId} {
+      allow get, list: if isAuthorizedPersonnel();
+      allow create: if isAuthorizedPersonnel();
+      allow update, delete: if isAuthorizedPersonnel() && resource != null;
 
       /**
-       * @description Rules for clients managed by a specific user.
-       * @path /users/{userId}/clients/{clientId}
-       * @allow (create) if the user is the owner and provides matching internal ID.
-       * @deny (read/write) if request.auth.uid does not match {userId}.
-       * @principle Path-based authorization for user-scoped subcollections.
-       */
-      match /clients/{clientId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.id == clientId;
-        allow update: if isExistingOwner(userId) && isUnchanged('id');
-        allow delete: if isExistingOwner(userId);
-      }
-
-      /**
-       * @description Rules for work type definitions (services) offered by a user.
-       * @path /users/{userId}/workTypes/{workTypeId}
-       * @allow (list) if the user is the owner of this service list.
-       * @deny (update) if the internal 'id' field is being changed.
-       * @principle Relational integrity and ownership enforcement.
-       */
-      match /workTypes/{workTypeId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.id == workTypeId;
-        allow update: if isExistingOwner(userId) && isUnchanged('id');
-        allow delete: if isExistingOwner(userId);
-      }
-
-      /**
-       * @description Rules for service bookings created by the user.
-       * @path /users/{userId}/bookings/{bookingId}
-       * @allow (create) if the owner is signed in and links the document correctly.
-       * @deny (delete) if the booking document does not exist.
-       * @principle Strict ownership and existence checks for destructive operations.
+       * @description Bookings nested under clients. Includes relational validation.
+       * @path /clients/{clientId}/bookings/{bookingId}
+       * @allow (create) if the 'clientId' in data matches the 'clientId' in the URL path.
+       * @deny (read, write) for users who are not Staff or Admins.
+       * @principle Path-based structure with denormalized fields for authorization independence.
        */
       match /bookings/{bookingId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.id == bookingId;
-        allow update: if isExistingOwner(userId) && isUnchanged('id');
-        allow delete: if isExistingOwner(userId);
+        allow get, list: if isAuthorizedPersonnel();
+        allow create: if isAuthorizedPersonnel() && request.resource.data.clientId == clientId;
+        allow update: if isAuthorizedPersonnel() && resource != null && request.resource.data.clientId == resource.data.clientId;
+        allow delete: if isAuthorizedPersonnel() && resource != null;
       }
+    }
 
-      /**
-       * @description Rules for timestamped snapshots of user data.
-       * @path /users/{userId}/backups/{backupId}
-       * @allow (get) to fetch a specific backup for restoration.
-       * @deny (write) for users other than the owner.
-       * @principle Ensures backup data remains private and owner-controlled.
-       */
-      match /backups/{backupId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId);
-        allow delete: if isExistingOwner(userId);
-      }
+    /**
+     * @description Service definition management.
+     * @path /workTypes/{workTypeId}
+     * @allow (read, write) for any user with an Admin or Staff role.
+     * @deny (all) if the user is not authenticated as staff.
+     * @principle Homogeneous security posture for configuration data.
+     */
+    match /workTypes/{workTypeId} {
+      allow get, list: if isAuthorizedPersonnel();
+      allow create: if isAuthorizedPersonnel();
+      allow update, delete: if isAuthorizedPersonnel() && resource != null;
+    }
+
+    /**
+     * @description Rules for Collection Group queries on 'bookings' across all clients.
+     * @path /{path=**}/bookings/{bookingId}
+     * @allow (list) for dashboards and reporting if the user is staff/admin.
+     * @principle Secures global queries used in administrative views.
+     */
+    match /{path=**}/bookings/{bookingId} {
+      allow list: if isAuthorizedPersonnel();
     }
   }
 }
+
+/** 
+ * SECURITY NOTE: 
+ * The instruction to "add Google Authenticator" refers to an MFA (Multi-Factor Authentication) 
+ * configuration within Firebase Authentication. These security rules correctly rely on 
+ * 'request.auth', which will automatically reflect the user's verified identity once MFA 
+ * is successfully completed at the authentication layer.
+ */
+
+/*
+Analysis of IR:
+1. Adopt Intent: The reasoning specifies Role-Based Access Control using marker collections (adminRoles/staffRoles).
+2. Access Patterns:
+   - /userProfiles/{userId}: Ownership (isOwner).
+   - /adminRoles/{userId} & /staffRoles/{userId}: RBAC Markers.
+   - /clients: Staff/Admin shared access.
+   - /workTypes: Staff/Admin shared access.
+   - /clients/{clientId}/bookings: Staff/Admin shared access with relational validation to clientId.
+3. Ambiguities: The prompt mentions Google Authenticator; as the backend reasoning notes, this is an Auth layer concern, not a database schema concern. Rules reflect this by strictly requiring `request.auth`.
+*/

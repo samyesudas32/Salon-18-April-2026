@@ -1,10 +1,60 @@
 {
   "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents an administrator or staff member who uses the ServiceFlow Hub application. This entity stores application-specific user data, while authentication and security mechanisms like Google Authenticator are handled by an external system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the application user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the application user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the application user, used for internal communication and display.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The contact phone number for the application user."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user within the application (e.g., 'Admin', 'Staff'), defining their permissions and access levels."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "role"
+      ]
+    },
     "Client": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Client",
       "type": "object",
-      "description": "Represents a client who books services with the business.",
+      "description": "Represents a customer for whom services are booked in the ServiceFlow Hub.",
       "properties": {
         "id": {
           "type": "string",
@@ -16,16 +66,30 @@
         },
         "email": {
           "type": "string",
-          "description": "The email address of the client.",
+          "description": "The primary contact email address for the client.",
           "format": "email"
         },
-        "phone": {
+        "phoneNumber": {
           "type": "string",
-          "description": "The primary phone number of the client."
+          "description": "The primary contact phone number for the client."
         },
         "address": {
           "type": "string",
           "description": "The physical address of the client."
+        },
+        "notes": {
+          "type": "string",
+          "description": "General notes or specific preferences about the client, which might influence future bookings."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the client record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the client record was last updated.",
+          "format": "date-time"
         }
       },
       "required": [
@@ -37,7 +101,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "WorkType",
       "type": "object",
-      "description": "Defines different categories or types of services offered by the business.",
+      "description": "Defines the different types of services offered by the business.",
       "properties": {
         "id": {
           "type": "string",
@@ -45,27 +109,46 @@
         },
         "name": {
           "type": "string",
-          "description": "The name or title of the work type (e.g., 'Website Design', 'SEO Consultation')."
+          "description": "The name of the service (e.g., 'Web Design', 'Graphic Design', 'Consultation')."
         },
         "description": {
           "type": "string",
-          "description": "A detailed description of the work type or service."
+          "description": "A detailed description of the service provided under this work type."
+        },
+        "estimatedDurationHours": {
+          "type": "number",
+          "description": "The estimated duration of the service in hours."
         },
         "defaultPrice": {
           "type": "number",
-          "description": "An optional default price or rate for this work type, in the local currency."
+          "description": "A suggested default price for this service type, used as a baseline for new bookings."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates if this work type is currently offered and available for booking."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the work type was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the work type was last updated.",
+          "format": "date-time"
         }
       },
       "required": [
         "id",
-        "name"
+        "name",
+        "isActive"
       ]
     },
     "Booking": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Booking",
       "type": "object",
-      "description": "Represents a scheduled service booking with a client, including all financial and service details.",
+      "description": "Represents a scheduled appointment or service delivery for a client, including all financial and descriptive details.",
       "properties": {
         "id": {
           "type": "string",
@@ -73,53 +156,57 @@
         },
         "clientId": {
           "type": "string",
-          "description": "Reference to the Client entity who made this booking. (Relationship: Client 1:N Booking)"
+          "description": "Reference to the Client entity for whom this booking is made. (Relationship: Client 1:N Booking)"
         },
         "workTypeId": {
           "type": "string",
-          "description": "Reference to the WorkType entity for the service being booked. (Relationship: WorkType 1:N Booking)"
+          "description": "Reference to the WorkType entity, specifying the service booked for this appointment. (Relationship: WorkType 1:N Booking)"
         },
         "bookingDate": {
           "type": "string",
-          "description": "The date and time when this booking record was created or registered.",
-          "format": "date-time"
+          "description": "The scheduled date of the booking.",
+          "format": "date"
         },
-        "serviceDate": {
+        "bookingTime": {
           "type": "string",
-          "description": "The scheduled date and time for the service to be performed.",
-          "format": "date-time"
+          "description": "The scheduled time of the booking.",
+          "format": "time"
         },
         "status": {
           "type": "string",
-          "description": "The current status of the booking (e.g., 'Pending', 'Confirmed', 'Completed', 'Cancelled')."
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "The total agreed-upon amount for the service, in the local currency."
+          "description": "Current status of the booking (e.g., 'Pending', 'Confirmed', 'Completed', 'Cancelled')."
         },
         "advanceAmount": {
           "type": "number",
-          "description": "The amount paid by the client in advance for the service, in the local currency."
+          "description": "The amount paid in advance by the client for the booking."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total agreed amount for the work or service for this booking."
         },
         "expenseAmount": {
           "type": "number",
-          "description": "Any additional expenses incurred specifically for this booking, in the local currency."
+          "description": "Any additional expenses incurred by the business for this specific booking."
         },
         "expenseNote": {
           "type": "string",
-          "description": "A brief note or description explaining the associated expense for this booking."
+          "description": "A brief note or description explaining the expenses incurred for this booking."
         },
         "balanceAmount": {
           "type": "number",
-          "description": "The remaining balance due for the booking (Total Amount - Advance Amount - Expense Amount), in the local currency."
+          "description": "The amount remaining to be paid by the client for this booking (Total Amount - Advance Amount)."
         },
         "notes": {
           "type": "string",
-          "description": "General notes or specific instructions pertinent to this booking."
+          "description": "Any additional notes or specific instructions related to this booking provided by the client or internal staff."
+        },
+        "completionDetails": {
+          "type": "string",
+          "description": "Detailed description of the work completed and any relevant outcomes for this booking, as per the client history requirement."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the booking record was initially created.",
+          "description": "Timestamp when the booking record was created.",
           "format": "date-time"
         },
         "updatedAt": {
@@ -133,15 +220,9 @@
         "clientId",
         "workTypeId",
         "bookingDate",
-        "serviceDate",
         "status",
         "totalAmount",
-        "advanceAmount",
-        "expenseAmount",
-        "expenseNote",
-        "balanceAmount",
-        "createdAt",
-        "updatedAt"
+        "balanceAmount"
       ]
     }
   },
@@ -154,86 +235,106 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/clients/{clientId}",
+        "path": "/userProfiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores application-specific profiles for staff and administrators. The '{userId}' wildcard MUST match 'request.auth.uid'. This path is for a user to manage their own profile. Authorization is path-based and ensures private data access. For broader role-based access checks, dedicated role collections are used.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the UserProfile (and Firebase Auth UID) that corresponds to the authenticated user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/adminRoles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "A dedicated collection for fast, permission-based checks. The existence of a document at `/adminRoles/{request.auth.uid}` indicates the authenticated user is an administrator. This avoids expensive 'get()' calls in security rules. The 'userId' MUST match 'request.auth.uid' and corresponds to the UserProfile.id.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the UserProfile (and Firebase Auth UID) that has the 'Admin' role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/staffRoles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "A dedicated collection for fast, permission-based checks. The existence of a document at `/staffRoles/{request.auth.uid}` indicates the authenticated user is a staff member. This avoids expensive 'get()' calls in security rules. The 'userId' MUST match 'request.auth.uid' and corresponds to the UserProfile.id.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the UserProfile (and Firebase Auth UID) that has the 'Staff' role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clients/{clientId}",
         "definition": {
           "entityName": "Client",
           "schema": {
             "$ref": "#/backend/entities/Client"
           },
-          "description": "Stores client information specific to a particular user. Each client document is privately owned by the user whose ID is specified in the path, ensuring that only the authenticated user can access their own client list.",
+          "description": "Stores information for all clients. Access is granted to UserProfiles with 'Admin' or 'Staff' roles. This collection has a homogeneous security posture, meaning all clients are accessible under the same rules by authorized personnel.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this client record."
-            },
-            {
               "name": "clientId",
-              "description": "The unique identifier for the client."
+              "description": "The unique identifier for the Client."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/workTypes/{workTypeId}",
+        "path": "/workTypes/{workTypeId}",
         "definition": {
           "entityName": "WorkType",
           "schema": {
             "$ref": "#/backend/entities/WorkType"
           },
-          "description": "Defines different categories or types of services offered by a user. Each work type document is privately owned by the user whose ID is specified in the path, ensuring only the authenticated user can manage their service offerings.",
+          "description": "Defines the various types of services offered. Access is granted to UserProfiles with 'Admin' or 'Staff' roles. This collection has a homogeneous security posture, meaning all work types are accessible under the same rules by authorized personnel.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this work type definition."
-            },
-            {
               "name": "workTypeId",
-              "description": "The unique identifier for the work type."
+              "description": "The unique identifier for the WorkType."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/bookings/{bookingId}",
+        "path": "/clients/{clientId}/bookings/{bookingId}",
         "definition": {
           "entityName": "Booking",
           "schema": {
             "$ref": "#/backend/entities/Booking"
           },
-          "description": "Represents a scheduled service booking, privately owned by the user whose ID is in the path. This collection stores all financial and service details for each booking, referencing clients and work types that belong to the same user. Includes denormalized 'clientId' and 'workTypeId' for contextual data integrity within the user's scope.",
+          "description": "Stores specific booking details, nested under the respective Client. Each Booking document MUST contain a 'clientId' field that matches the '{clientId}' in its path. This structure enables efficient retrieval of a client's booking history and supports collectionGroup queries for global dashboards/reports. Includes denormalized 'clientId' for authorization independence.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this booking record."
+              "name": "clientId",
+              "description": "The unique identifier of the Client to whom this booking belongs."
             },
             {
               "name": "bookingId",
-              "description": "The unique identifier for the booking."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/backups/{backupId}",
-        "definition": {
-          "entityName": "Backup",
-          "schema": {
-            "$ref": "#/backend/entities/Backup"
-          },
-          "description": "Stores timestamped full snapshots of a user's entire application data (clients, work types, bookings) for backup and restore purposes. Each document represents a single backup version and is strictly private to the user specified by 'userId'.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this backup."
-            },
-            {
-              "name": "backupId",
-              "description": "A unique identifier for the backup, typically a timestamp to support multiple backup versions."
+              "description": "The unique identifier for the Booking."
             }
           ]
         }
       }
     ],
-    "reasoning": "The recommended Firestore structure prioritizes Authorization Independence and Query-Aware Security Rules (QAPs) by anchoring all user-specific data directly under the authenticated user's unique ID. This design ensures that every piece of application data (Clients, WorkTypes, Bookings) is inherently private and accessible only by its owner. \n\n**Authorization Independence:** All collections are subcollections of `/users/{userId}/`. This path structure means that any security rule for documents within `/users/{userId}/clients`, `/users/{userId}/workTypes`, `/users/{userId}/bookings`, or `/users/{userId}/backups` can directly reference `request.auth.uid == userId`. This completely eliminates the need for `get()` calls in security rules to verify ownership or permissions from a parent document. For example, to read a client document, the rule simply checks if `request.auth.uid` matches the `{userId}` wildcard in the path `match /users/{userId}/clients/{clientId}`. This makes rules atomic, robust, and easy to debug.\n\n**QAPs (Rules are not Filters):** By segregating all data per user into distinct subcollections under `/users/{userId}/`, `list` operations become inherently secure and performant. When a user queries `users/{request.auth.uid}/clients`, Firestore's security rules can grant access based solely on the path. The rule `allow list: if request.auth.uid == userId;` is efficient because Firestore can evaluate it directly without needing to filter results after a broad query, adhering to the 'rules are not filters' principle. Each user's data operates in its own securely partitioned space, making it impossible for one user to inadvertently or maliciously query another user's data through a valid query with permissions.\n\n**Denormalization:** In this specific design, since all user data is rooted under `/users/{userId}/`, the `userId` in the path itself serves as the primary authorization context. While `ownerId` could be denormalized into each document for auditability or potential future flexibility, it is not strictly necessary for security rule enforcement in this purely user-scoped model, as the `userId` in the path implicitly defines ownership and is used by `request.auth.uid`. The `Booking` documents do contain `clientId` and `workTypeId` which are references to other documents *within the same user's scope*, maintaining strong referential integrity without cross-user dependencies or complex authorization rules."
+    "reasoning": "This Firestore structure is designed for a multi-user application (ServiceFlow Hub) with clear role-based access control, adhering to principles of Authorization Independence, Structural Segregation, and Access Modeling. \n\n**Authorization Independence:**\n1.  **DBAC with Dedicated Role Collections:** To avoid expensive and non-atomic `get()` operations in security rules, user roles (`Admin`, `Staff`) are not solely determined by the `role` field in `/userProfiles/{userId}`. Instead, dedicated, 'empty' collections (`/adminRoles/{userId}` and `/staffRoles/{userId}`) are used. The *existence* of a document at `/adminRoles/$(request.auth.uid)` or `/staffRoles/$(request.auth.uid)` directly grants administrative or staff permissions respectively. This allows security rules to perform a fast `exists()` check, ensuring atomic authorization without relying on parent document data for every access decision. A backend function (e.g., Cloud Function) would be responsible for synchronizing these role collections with the `UserProfile.role` field whenever a user profile is created or updated.\n2.  **Denormalized Subcollection Identifiers:** For subcollections like `/clients/{clientId}/bookings/{bookingId}`, the child document (`Booking`) includes the parent's identifier (`clientId`) as a field. This denormalization means that security rules for a `Booking` document can verify `request.resource.data.clientId == clientId` (where `clientId` is the path parameter) directly from the document itself, without needing to `get()` the parent `Client` document. This allows independent and atomic access checks for each booking.\n\n**QAPs (Query-Able Permissions):**\n1.  **User Profiles:** `/userProfiles/{userId}` allows users to access their own profile (`request.auth.uid == userId`) securely.\n2.  **Admin/Staff Roles:** `/adminRoles/{userId}` and `/staffRoles/{userId}` are used for direct `exists()` checks in security rules to determine a user's role, enabling global `list` operations for authorized personnel across other data types (e.g., all `Clients`, all `WorkTypes`, all `Bookings`).\n3.  **Client and WorkType Management:** `/clients/{clientId}` and `/workTypes/{workTypeId}` are designed as top-level collections, ensuring a homogeneous security posture. All documents within these collections require the same level of access (e.g., any staff or admin can view/edit). This allows simple `list` queries for all clients or work types, with rules checking the requesting user's role using the dedicated role collections.\n4.  **Booking Management:** Bookings are stored hierarchically under clients at `/clients/{clientId}/bookings/{bookingId}`. This structure is ideal for the 'Client History View' as it allows efficient querying of all bookings for a specific client. For global views such as 'Upcoming Appointments Dashboard' and 'Financial Reporting Suite', `collectionGroup` queries on the `bookings` collection will be employed. Security rules for these `collectionGroup` queries will operate on the `Booking` document's denormalized `clientId` field and the requesting user's role, ensuring that `list` operations remain secure and efficient, and rules do not act as filters.\n\n**Google Authenticator Note:** The request to 'add Google Authenticator' is an authentication mechanism and, as stated in the `UserProfile` schema, is handled by an external system (e.g., Firebase Authentication). This does not require any specific changes to the Firestore data structure itself, as Firestore stores user *data*, not authentication secrets or MFA states."
   }
 }
